@@ -199,6 +199,8 @@ export default async (connection: Connection): Promise<AuthSuccess> => {
 
       if (authContext === null) {
         // The user has manually navigated to "/#authorize".
+        // TODO: show error here, silent reload is just awkward
+        // NOTE: hash stays behind (just "#")
         window.location.hash = "";
         window.location.reload();
         return new Promise((_resolve) => {

@@ -11,6 +11,7 @@ import { showWarningIfNecessary } from "./banner";
 import authorizeAuthentication from "./flows/authenticate";
 import { displayError } from "./components/displayError";
 import { Connection } from "./utils/iiConnection";
+import { unlessIsMigrating } from "./utils/migrating";
 
 /** Reads the canister ID from the <script> tag.
  *
@@ -73,15 +74,17 @@ const init = async () => {
     }
     // Open the management page
     case "manage": {
-      // Go through the login flow, potentially creating an anchor.
-      const { userNumber, connection: authenticatedConnection } = await login(
-        connection
-      );
-      // Here, if the user doesn't have any recovery device, we prompt them to add
-      // one. The exact flow depends on the device they use.
-      await recoveryWizard(userNumber, authenticatedConnection);
-      // From here on, the user is authenticated to II.
-      return renderManage(userNumber, authenticatedConnection);
+      unlessIsMigrating(async () => {
+        // Go through the login flow, potentially creating an anchor.
+        const { userNumber, connection: authenticatedConnection } = await login(
+          connection
+        );
+        // Here, if the user doesn't have any recovery device, we prompt them to add
+        // one. The exact flow depends on the device they use.
+        await recoveryWizard(userNumber, authenticatedConnection);
+        // From here on, the user is authenticated to II.
+        return renderManage(userNumber, authenticatedConnection);
+      });
     }
   }
 };
