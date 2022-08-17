@@ -2,25 +2,6 @@ version: "3.9"
 services:
   # service hosting dfx running II and the test app
   # canister ids are assigned deterministically on startup, so we can hardcode them
-  ic:
-    build: dfx-docker
-    ports:
-      - "8000:8000"
-    volumes:
-      - "./dfx-docker/canisters:/canisters:ro"
-    # we consider the canister ready, once the II page is reachable
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000?canisterId=rrkah-fqaaa-aaaaa-aaaaq-cai" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      ic:
-        aliases:
-          # dfx starts icx-proxy with a configuration that allows canister based domains only on localhost,
-          # so we make this canister available using <canister_id>.localhost domains
-          - rrkah-fqaaa-aaaaa-aaaaq-cai.localhost
-          - ryjl3-tyaaa-aaaaa-aaaba-cai.localhost
 
   # Nginx proxy to terminate tls and transform domains to *.localhost
   nginx:
