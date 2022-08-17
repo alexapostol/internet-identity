@@ -38,8 +38,12 @@ import {
   waitToClose,
 } from "./util";
 
-const TEST_APP_CANISTER_ID = "ryjl3-tyaaa-aaaaa-aaaba-cai";
-const TEST_APP_CANONICAL_URL = "https://ryjl3-tyaaa-aaaaa-aaaba-cai.ic0.app";
+// Read canister ids from the corresponding dfx files.
+// This assumes that they have been successfully dfx-deployed
+import test_app_canister_ids from "../../../../demos/test-app/.dfx/local/canister_ids.json";
+
+const TEST_APP_CANISTER_ID = test_app_canister_ids.test_app.local;
+const TEST_APP_CANONICAL_URL = `https://${TEST_APP_CANISTER_ID}.ic0.app`;
 const TEST_APP_NICE_URL = "https://nice-name.com";
 const REPLICA_URL = "https://ic0.app";
 const II_URL = "https://identity.ic0.app";
