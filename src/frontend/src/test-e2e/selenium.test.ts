@@ -927,7 +927,7 @@ test("Should not issue delegation when derivationOrigin is missing from /.well-k
     const errorView = new ErrorView(browser);
     await errorView.waitForDisplay();
     expect(await errorView.getErrorMessage()).toEqual(
-      '"https://ryjl3-tyaaa-aaaaa-aaaba-cai.ic0.app" is not a valid derivation origin for "https://nice-name.com"'
+      `"${TEST_APP_CANONICAL_URL}" is not a valid derivation origin for "https://nice-name.com"`
     );
     expect(await errorView.getErrorDetail()).toEqual(
       '"https://nice-name.com" is not listed in the list of allowed alternative origins. Allowed alternative origins: '
@@ -1007,10 +1007,10 @@ test("Should not issue delegation when /.well-known/ii-alternative-origins has t
     const errorView = new ErrorView(browser);
     await errorView.waitForDisplay();
     expect(await errorView.getErrorMessage()).toEqual(
-      '"https://ryjl3-tyaaa-aaaaa-aaaba-cai.ic0.app" is not a valid derivation origin for "https://nice-name.com"'
+      `"${TEST_APP_CANONICAL_URL}" is not a valid derivation origin for "https://nice-name.com"`
     );
     expect(await errorView.getErrorDetail()).toEqual(
-      "Resource https://ryjl3-tyaaa-aaaaa-aaaba-cai.ic0.app/.well-known/ii-alternative-origins has too many entries: To prevent misuse at most 10 alternative origins are allowed."
+      `Resource ${TEST_APP_CANONICAL_URL}/.well-known/ii-alternative-origins has too many entries: To prevent misuse at most 10 alternative origins are allowed.`
     );
   });
 }, 300_000);
@@ -1047,7 +1047,7 @@ test("Should not follow redirect returned by /.well-known/ii-alternative-origins
     const errorView = new ErrorView(browser);
     await errorView.waitForDisplay();
     expect(await errorView.getErrorMessage()).toEqual(
-      '"https://ryjl3-tyaaa-aaaaa-aaaba-cai.ic0.app" is not a valid derivation origin for "https://nice-name.com"'
+      `"${TEST_APP_CANONICAL_URL}" is not a valid derivation origin for "https://nice-name.com"`
     );
     expect(await errorView.getErrorDetail()).toEqual(
       'An error occurred while validating the derivationOrigin "https://ryjl3-tyaaa-aaaaa-aaaba-cai.ic0.app": Failed to fetch'

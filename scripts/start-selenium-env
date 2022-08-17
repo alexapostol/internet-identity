@@ -25,8 +25,9 @@ function help() {
     cat << EOF
 
 Launches docker based Selenium test infrastructure (selenium and nginx containers).
+Run "docker compose down" in the docker-test-env folder to stop again.
 
-NOTE: This requires a working docker and a running dfx replica with II and the test app installed.
+NOTE: This requires docker, a running dfx replica with II and the test app deployed and running II dev server (npm run start).
 EOF
 
 }
@@ -55,6 +56,5 @@ TEST_APP_CANISTER_ID=$( jq -r .test_app.local demos/test-app/.dfx/local/canister
 
 cd "docker-test-env"
 COMPOSE_CONIFIG=$(sed -u "s/II_CANISTER_ID/$II_CANISTER_ID/g; s/TEST_APP_CANISTER_ID/$TEST_APP_CANISTER_ID/g" docker-compose.yml)
-echo "$COMPOSE_CONIFIG"
 echo "$COMPOSE_CONIFIG" | docker compose -f - build --build-arg II_CANISTER_ID="$II_CANISTER_ID" --build-arg TEST_APP_CANISTER_ID="$TEST_APP_CANISTER_ID"
 echo "$COMPOSE_CONIFIG" | docker compose -f - up -d --wait
