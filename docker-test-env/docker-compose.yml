@@ -8,6 +8,8 @@ services:
     build: reverse_proxy
     ports:
       - "8443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       ic:
         aliases:

@@ -17,10 +17,7 @@ function usage() {
     cat << EOF
 
 Usage:
-  $0 [--ci]
-
-Options:
-  --ci Set linux specific flags to the docker compose command (as used on CI)
+  $0
 EOF
 }
 
@@ -35,8 +32,6 @@ EOF
 
 }
 
-CI_FLAG=
-
 while [[ $# -gt 0  ]]
 do
     case "$1" in
@@ -45,10 +40,6 @@ do
             usage
             help
             exit 0
-            ;;
-        --ci)
-            CI_FLAG="--add-host host.docker.internal:host-gateway"
-            shift
             ;;
         *)
             echo "ERROR: unknown argument $1"
@@ -66,4 +57,4 @@ TEST_APP_CANISTER_ID=$( jq -r .test_app.local demos/test-app/.dfx/local/canister
 cd "docker-test-env"
 COMPOSE_CONIFIG=$(sed -u "s/II_CANISTER_ID/$II_CANISTER_ID/g; s/TEST_APP_CANISTER_ID/$TEST_APP_CANISTER_ID/g" docker-compose.yml)
 echo "$COMPOSE_CONIFIG" | docker compose -f - build --build-arg II_CANISTER_ID="$II_CANISTER_ID" --build-arg TEST_APP_CANISTER_ID="$TEST_APP_CANISTER_ID"
-echo "$COMPOSE_CONIFIG" | docker compose -f - up -d --wait $CI_FLAG
+echo "$COMPOSE_CONIFIG" | docker compose -f - up -d --wait
