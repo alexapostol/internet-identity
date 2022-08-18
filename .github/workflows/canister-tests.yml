@@ -264,9 +264,8 @@ jobs:
 
       - name: Deploy Internet Identity
         run: |
-          mv internet_identity_test.wasm internet_identity.wasm
           dfx canister create --all
-          dfx canister install internet_identity --argument '(null)'
+          dfx canister install internet_identity --argument '(null)' --wasm internet_identity_test.wasm
 
       - name: Deploy test app
         working-directory: demos/test-app
