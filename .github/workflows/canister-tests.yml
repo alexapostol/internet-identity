@@ -265,14 +265,14 @@ jobs:
       - name: Deploy Internet Identity
         run: |
           mv internet_identity_test.wasm internet_identity.wasm
-          dfx canister --no-wallet create --all
-          dfx canister --no-wallet install internet_identity --argument '(null)'
+          dfx canister create --all
+          dfx canister install internet_identity --argument '(null)'
 
       - name: Deploy test app
         working-directory: demos/test-app
         run: |
-          dfx canister --no-wallet create --all
-          dfx canister --no-wallet install test_app
+          dfx canister create --all
+          dfx canister install test_app
 
       - name: Run II dev front-end
         run: |
