@@ -21,7 +21,7 @@ To run selenium tests, do the following:
 4. Run `npm run start` from the repository root.
 5. Run `scripts/start-selenium-env` from the repository root.
    1. The docker compose setup can be shut down by running `docker compose down` in the `docker-test-env` directory.
-   2. The docker compose setup has to be restarted only if the canister id changes, so additional `dfx deploy` commands or changes to the front-end of II do not require a restart of the docker compose project.
+   2. The docker compose setup has to be restarted only if the canister ids change. Additional `dfx deploy` commands or changes to the front-end of II do not require a restart of the docker compose project.
 6. Run `npm run test:e2e-desktop` or `npm run test:e2e-mobile` from the repository root to run the selenium tests.
 
 It is possible to connect to the selenium container to watch the tests being executed by opening `http://localhost:7900/` in the browser. The password is `secret`.
