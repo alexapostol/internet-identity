@@ -271,7 +271,7 @@ jobs:
         working-directory: demos/test-app
         run: |
           dfx canister create --all
-          dfx canister install test_app
+          dfx canister install test_app --wasm test_app.wasm
 
       - name: Run II dev front-end
         run: |
