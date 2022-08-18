@@ -21,7 +21,7 @@ services:
           - TEST_APP_CANISTER_ID.ic0.app
           - nice-name.com
 
-  # Selenium container with chromdriver and chrome
+  # Selenium container with chromedriver and chrome
   selenium:
     # use the seleniarm image that provides multiple architecture variants including one for M1 chips
     image: seleniarm/standalone-chromium:104.0

@@ -1050,7 +1050,7 @@ test("Should not follow redirect returned by /.well-known/ii-alternative-origins
       `"${TEST_APP_CANONICAL_URL}" is not a valid derivation origin for "https://nice-name.com"`
     );
     expect(await errorView.getErrorDetail()).toEqual(
-      'An error occurred while validating the derivationOrigin "https://ryjl3-tyaaa-aaaaa-aaaba-cai.ic0.app": Failed to fetch'
+      `An error occurred while validating the derivationOrigin "${TEST_APP_CANONICAL_URL}": Failed to fetch`
     );
   });
 }, 300_000);
@@ -1096,7 +1096,7 @@ test("Should fetch /.well-known/ii-alternative-origins using the non-raw url", a
     );
     let logs = (await browser.getLogs("browser")) as { message: string }[];
     expect(logs[logs.length - 1].message).toEqual(
-      "https://ryjl3-tyaaa-aaaaa-aaaba-cai.raw.ic0.app/.well-known/ii-alternative-origins - Failed to load resource: the server responded with a status of 404 ()"
+      `${TEST_APP_CANONICAL_URL}/.well-known/ii-alternative-origins - Failed to load resource: the server responded with a status of 404 ()`
     );
 
     // This works anyway --> fetched using non-raw
