@@ -57,4 +57,4 @@ TEST_APP_CANISTER_ID=$( jq -r .test_app.local demos/test-app/.dfx/local/canister
 cd "docker-test-env"
 COMPOSE_CONIFIG=$(sed -u "s/II_CANISTER_ID/$II_CANISTER_ID/g; s/TEST_APP_CANISTER_ID/$TEST_APP_CANISTER_ID/g" docker-compose.yml)
 echo "$COMPOSE_CONIFIG" | docker compose -f - build --build-arg II_CANISTER_ID="$II_CANISTER_ID" --build-arg TEST_APP_CANISTER_ID="$TEST_APP_CANISTER_ID"
-echo "$COMPOSE_CONIFIG" | docker compose -f - up -d --wait
+echo "$COMPOSE_CONIFIG" | docker compose -f - up -d --wait --add-host host.docker.internal:host-gateway
