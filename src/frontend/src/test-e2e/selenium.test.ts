@@ -1096,7 +1096,7 @@ test("Should fetch /.well-known/ii-alternative-origins using the non-raw url", a
     );
     let logs = (await browser.getLogs("browser")) as { message: string }[];
     expect(logs[logs.length - 1].message).toEqual(
-      `${TEST_APP_CANONICAL_URL}/.well-known/ii-alternative-origins - Failed to load resource: the server responded with a status of 404 ()`
+      `https://${TEST_APP_CANISTER_ID}.raw.ic0.app/.well-known/ii-alternative-origins - Failed to load resource: the server responded with a status of 404 ()`
     );
 
     // This works anyway --> fetched using non-raw
