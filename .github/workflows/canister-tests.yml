@@ -230,6 +230,16 @@ jobs:
         with:
           node-version: 16.x
 
+      - uses: actions/cache@v2
+        with:
+          path: |
+            seleniarm-image.tar
+          key: ${{ runner.os }}-cargo-${{ hashFiles('docker-test-env/docker-compose.yml') }}
+
+      - name: Load docker cached images (if existing)
+        run: |
+          [[ -f seleniarm-image.tar ]] && docker load -i seleniarm-image.tar || true
+
       # This step hangs on Github actions on Darwin for some reason, that
       # is why we run this only on Linux for now
       - name: Install DFX
@@ -321,6 +331,9 @@ jobs:
           name: e2e-test-failures-${{ matrix.device }}
           path: test-failures/*
           if-no-files-found: ignore
+
+      - name: Save docker seleniarm image (for caching)
+        run: docker save seleniarm/standalone-chromium -o seleniarm-image.tar
 
   using-dev-build:
     runs-on: ubuntu-latest
