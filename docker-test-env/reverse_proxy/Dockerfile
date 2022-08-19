@@ -1,4 +1,4 @@
-FROM nginx:latest
+FROM nginx:1.23.1
 
 ARG TEST_APP_CANISTER_ID
 ARG II_CANISTER_ID

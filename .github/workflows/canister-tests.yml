@@ -230,6 +230,11 @@ jobs:
         with:
           node-version: 16.x
 
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.2.2
+        with:
+          key: docker-${{ runner.os }}-${{ hashFiles('docker-test-env/docker-compose.yml', 'docker-test-env/reverse_proxy/Dockerfile') }}
+
       # This step hangs on Github actions on Darwin for some reason, that
       # is why we run this only on Linux for now
       - name: Install DFX
