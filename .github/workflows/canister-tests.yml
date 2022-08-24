@@ -521,18 +521,17 @@ jobs:
         run: |
           if [${{ github.ref == 'refs/heads/main' }}]
           then
-            export NETWORK=latest
+            echo "network=latest" >> $GITHUB_ENV
           else
-            export NETWORK=ic
+            echo "network=ic" >> $GITHUB_ENV
           fi
-          echo $NETWORK
 
       - name: "Deploy"
         run: |
           mv internet_identity_production.wasm internet_identity.wasm
           wallet="cvthj-wyaaa-aaaad-aaaaq-cai"
-          echo "$NETWORK"
-          #dfx canister --network "$NETWORK" --wallet "$wallet" install --mode upgrade \
+          echo "${{ env.network }}"
+          #dfx canister --network "${{ env.network }}" --wallet "$wallet" install --mode upgrade \
           #  --argument '(null)' \
           #  internet_identity
 
