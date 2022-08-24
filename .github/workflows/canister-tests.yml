@@ -496,7 +496,7 @@ jobs:
   # This deploys the production build to mainnet, to a canister that we use for release testing.
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/release-') || github.ref == 'refs/heads/main' }}
+    #if: ${{ startsWith(github.ref, 'refs/tags/release-') || github.ref == 'refs/heads/main' }}
     needs: docker-build
     steps:
       - uses: actions/checkout@v2
@@ -519,18 +519,18 @@ jobs:
           rm "$key_pem"
       - name: "Select Stage"
         run: |
-          if [${{ github.ref == 'refs/heads/main' }}]
+          if [${{ startsWith(github.ref, 'refs/tags/release-') }}]
           then
-            echo "network=latest" >> $GITHUB_ENV
-          else
             echo "network=ic" >> $GITHUB_ENV
+          else
+            echo "network=latest" >> $GITHUB_ENV
           fi
 
       - name: "Deploy"
         run: |
           mv internet_identity_production.wasm internet_identity.wasm
           wallet="cvthj-wyaaa-aaaad-aaaaq-cai"
-          echo "${{ env.network }}"
+          echo using network "${{ env.network }}"
           #dfx canister --network "${{ env.network }}" --wallet "$wallet" install --mode upgrade \
           #  --argument '(null)' \
           #  internet_identity
