@@ -531,9 +531,10 @@ jobs:
           mv internet_identity_production.wasm internet_identity.wasm
           wallet="cvthj-wyaaa-aaaad-aaaaq-cai"
           echo deploying using network "${{ env.network }}"
-          #dfx canister --network "${{ env.network }}" --wallet "$wallet" install --mode upgrade \
-          #  --argument '(null)' \
-          #  internet_identity
+          dfx canister --network "${{ env.network }}" --wallet "$wallet" install --mode upgrade \
+            --argument '(null)' \
+            --wasm internet_identity.wasm \
+            internet_identity
 
       - name: Call for testing
         run: |
