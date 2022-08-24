@@ -28,6 +28,12 @@
         "http://[2a00:fb01:400:42:5000:d1ff:fefe:987e]:8080"
       ],
       "type": "persistent"
+    },
+    "latest": {
+      "providers": [
+        "https://ic0.app"
+      ],
+      "type": "persistent"
     }
   },
   "version": 1

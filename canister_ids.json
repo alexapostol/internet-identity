@@ -1,7 +1,8 @@
 {
   "internet_identity": {
-    "identity": "rdmx6-jaaaa-aaaaa-aaadq-cai",
     "ic": "fgte5-ciaaa-aaaad-aaatq-cai",
+    "identity": "rdmx6-jaaaa-aaaaa-aaadq-cai",
+    "latest": "jqajs-xiaaa-aaaad-aab5q-cai",
     "nnsdapp": "qjdve-lqaaa-aaaaa-aaaeq-cai"
   }
 }
