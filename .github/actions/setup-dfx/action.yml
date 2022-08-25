@@ -1,18 +1,8 @@
 name: 'Setup DFX'
 description: Setup DFX
-env:
-  DFX_VERSION: 0.11.1
 runs:
   using: "composite"
   steps:
-    - uses: actions/cache@v2
-      with:
-        path: |
-          /usr/local/bin/dfx
-          ~/.cache/dfinity
-        key: dfx-cache-${{ env.DFX_VERSION }}-3
-    # This step hangs on Github actions on Darwin for some reason, that
-    # is why we run this only on Linux for now
     - name: Install DFX
       shell: bash
       run: |
@@ -21,7 +11,7 @@ runs:
           echo "DFX restored from cache"
         else
           echo "DFX not restored from cache, running install script:"
-          (yes || true) | sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
+          sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
         fi
         echo "DFX version"
         dfx --version
