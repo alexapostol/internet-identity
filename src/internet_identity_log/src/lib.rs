@@ -5,14 +5,16 @@ use internet_identity_interface::*;
 use serde_bytes::ByteBuf;
 use stable_structures::memory_manager::{ManagedMemory, MemoryId, MemoryManager};
 use stable_structures::{
-    cell::Cell as StableCell, log::Log, DefaultMemoryImpl, RestrictedMemory, WASM_PAGE_SIZE,
+    cell::Cell as StableCell, log::Log, DefaultMemoryImpl, RestrictedMemory, StableBTreeMap,
+    Storable, WASM_PAGE_SIZE,
 };
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 
 type Memory = RestrictedMemory<DefaultMemoryImpl>;
 type StableLog = Log<ManagedMemory<Memory>, ManagedMemory<Memory>>;
-type ConfigCell = StableCell<ArchiveConfig, Memory>;
+type ConfigCell = StableCell<LogConfig, Memory>;
 
 const GIB: u64 = 1 << 30;
 /// The maximum number of Wasm pages that we allow to use for the stable storage.
@@ -37,9 +39,9 @@ thread_local! {
         RefCell::new(Log::init(memory_manager.get(LOG_INDEX_MEMORY_ID), memory_manager.get(LOG_DATA_MEMORY_ID)).expect("failed to initialize stable log"))
     });
 
-    ///
-    static USER_INDEX: RefCell<StableLog> = with_memory_manager(|memory_manager| {
-        RefCell::new(Log::init(memory_manager.get(LOG_INDEX_MEMORY_ID), memory_manager.get(LOG_DATA_MEMORY_ID)).expect("failed to initialize stable log"))
+    /// Index to efficiently filter entries by user number.
+    static USER_INDEX: RefCell<StableBTreeMap<ManagedMemory<Memory>, UserIndexKey, () >> = with_memory_manager(|memory_manager| {
+        RefCell::new(StableBTreeMap::new(memory_manager.get(USER_INDEX_MEMORY_ID), 5, 5))
     });
 }
 
@@ -75,6 +77,34 @@ struct LogConfig {
     ii_canister: Principal,
 }
 
+impl Default for LogConfig {
+    fn default() -> Self {
+        Self {
+            ii_canister: Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap(),
+        }
+    }
+}
+
+/// Configuration of the II log canister.
+#[derive(Serialize, Deserialize)]
+struct UserIndexKey {
+    user_number: UserNumber,
+    timestamp: Timestamp,
+    log_index: u64,
+}
+
+impl Storable for UserIndexKey {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        let mut buf = vec![];
+        ciborium::ser::into_writer(self, &mut buf).expect("failed to encode log config");
+        Cow::Owned(buf)
+    }
+
+    fn from_bytes(bytes: Vec<u8>) -> Self {
+        ciborium::de::from_reader(&bytes[..]).expect("failed to decode log options")
+    }
+}
+
 #[update]
 fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
     with_config(|config| {
@@ -85,7 +115,7 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
             ))
         }
     });
-    with_log(|log| {
-        log.append(entry.as_ref()).expect("failed"); // TODO: handle failure correctly
-    })
+    let idx = with_log(|log| {
+        log.append(entry.as_ref()).expect("failed") // TODO: handle failure correctly
+    });
 }
