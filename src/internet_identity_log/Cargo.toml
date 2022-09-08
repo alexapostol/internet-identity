@@ -9,6 +9,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+serde = "1"
+serde_bytes = "0.11"
+serde_cbor = "0.11"
+serde_with = "2.0.0"
+internet_identity_interface = { path = "../internet_identity_interface" }
 candid = "0.7"
 ic-cdk = "0.5"
 ic-cdk-macros = "0.5"
