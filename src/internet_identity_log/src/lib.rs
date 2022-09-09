@@ -1,6 +1,6 @@
-use candid::Principal;
+use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::{api, caller, trap};
-use ic_cdk_macros::query;
+use ic_cdk_macros::{query, update};
 use internet_identity_interface::*;
 use serde_bytes::ByteBuf;
 use stable_structures::memory_manager::{ManagedMemory, MemoryId, MemoryManager};
@@ -32,7 +32,7 @@ thread_local! {
     ).expect("failed to initialize stable cell"));
 
     /// Static memory manager to manage the memory available for blocks.
-    static MEMORY_MANAGER: RefCell<MemoryManager<Memory>> = RefCell::new(MemoryManager::init(blocks_memory()));
+    static MEMORY_MANAGER: RefCell<MemoryManager<Memory>> = RefCell::new(MemoryManager::init(log_memory()));
 
     /// Append-only list of encoded blocks stored in stable memory.
     static LOG: RefCell<StableLog> = with_memory_manager(|memory_manager| {
@@ -40,7 +40,7 @@ thread_local! {
     });
 
     /// Index to efficiently filter entries by user number.
-    static USER_INDEX: RefCell<StableBTreeMap<ManagedMemory<Memory>, UserIndexKey, () >> = with_memory_manager(|memory_manager| {
+    static USER_INDEX: RefCell<StableBTreeMap<ManagedMemory<Memory>, UserIndexKey, Vec<u8> >> = with_memory_manager(|memory_manager| {
         RefCell::new(StableBTreeMap::new(memory_manager.get(USER_INDEX_MEMORY_ID), 5, 5))
     });
 }
@@ -51,7 +51,7 @@ fn config_memory() -> Memory {
 }
 
 /// Creates a memory region for the append-only block list.
-fn blocks_memory() -> Memory {
+fn log_memory() -> Memory {
     RestrictedMemory::new(DefaultMemoryImpl::default(), 1..NUM_WASM_PAGES)
 }
 
@@ -71,10 +71,21 @@ fn with_log<R>(f: impl FnOnce(&StableLog) -> R) -> R {
 }
 
 /// Configuration of the II log canister.
-#[derive(Serialize, Deserialize)]
+#[derive(CandidType, Deserialize)]
 struct LogConfig {
     /// This canister will accept entries only from this principal.
     ii_canister: Principal,
+}
+
+impl Storable for LogConfig {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        let buf = candid::encode_one(&self).expect("failed to encode log config");
+        Cow::Owned(buf)
+    }
+
+    fn from_bytes(bytes: Vec<u8>) -> Self {
+        candid::decode_one::<LogConfig>(&bytes).expect("failed to decode log options")
+    }
 }
 
 impl Default for LogConfig {
@@ -86,7 +97,7 @@ impl Default for LogConfig {
 }
 
 /// Configuration of the II log canister.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 struct UserIndexKey {
     user_number: UserNumber,
     timestamp: Timestamp,
@@ -95,13 +106,25 @@ struct UserIndexKey {
 
 impl Storable for UserIndexKey {
     fn to_bytes(&self) -> Cow<[u8]> {
-        let mut buf = vec![];
-        ciborium::ser::into_writer(self, &mut buf).expect("failed to encode log config");
+        let mut buf = Vec::with_capacity(10);
+        buf.extend(&self.user_number.to_le_bytes());
+        buf.extend(&self.timestamp.to_le_bytes());
+        buf.extend(&self.log_index.to_le_bytes());
         Cow::Owned(buf)
     }
 
     fn from_bytes(bytes: Vec<u8>) -> Self {
-        ciborium::de::from_reader(&bytes[..]).expect("failed to decode log options")
+        UserIndexKey {
+            user_number: u64::from_le_bytes(
+                TryFrom::try_from(&bytes[0..8]).expect("failed to read user_number"),
+            ),
+            timestamp: u64::from_le_bytes(
+                TryFrom::try_from(&bytes[8..16]).expect("failed to read timestamp"),
+            ),
+            log_index: u64::from_le_bytes(
+                TryFrom::try_from(&bytes[16..]).expect("failed to read log_index"),
+            ),
+        }
     }
 }
 
