@@ -173,3 +173,53 @@ pub struct HttpResponse {
 pub struct InternetIdentityInit {
     pub assigned_user_number_range: (UserNumber, UserNumber),
 }
+
+// Logging specific types
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub enum OperationType {
+    RegisterAnchor {
+        initial_device: DeviceDataWithoutAlias,
+    },
+    AddDevice {
+        new_device: DeviceDataWithoutAlias,
+    },
+    UpdateDevice {
+        updated_device: PublicKey,
+        changed_data: DeviceDataUpdate,
+    },
+    RemoveDevice {
+        removed_device: PublicKey,
+    },
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+struct LogEntry {
+    // store user_number in LogEntry, such that anchor operations can be attributed to a user without consulting the index.
+    user_number: UserNumber,
+    operation: OperationType,
+    timestamp: Timestamp,
+    caller: PublicKey,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+struct Logs {
+    // make this a vec of options to keep LogEntry extensible
+    entries: Vec<Option<LogEntry>>,
+}
+
+// If present, the attribute has been changed to the value given.
+// Does not include the pubkey because it cannot be changed.
+#[derive(Eq, PartialEq, Clone, Debug, CandidType, Deserialize)]
+pub struct DeviceDataUpdate {
+    pub alias: Option<Hidden>,
+    pub credential_id: Option<CredentialId>,
+    pub purpose: Option<Purpose>,
+    pub key_type: Option<KeyType>,
+    pub protection: Option<DeviceProtection>,
+}
+
+// Placeholder for information that has been hidden for privacy reasons.
+pub enum Hidden {
+    HiddenForPrivacyReasons,
+}
