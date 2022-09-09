@@ -187,3 +187,5 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
     });
     Logs { entries }
 }
+
+fn main() {}
