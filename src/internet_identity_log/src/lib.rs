@@ -1,6 +1,6 @@
 use candid::{CandidType, Deserialize, Principal};
-use ic_cdk::{api, caller, trap};
-use ic_cdk_macros::{query, update};
+use ic_cdk::{caller, trap};
+use ic_cdk_macros::update;
 use internet_identity_interface::*;
 use serde_bytes::ByteBuf;
 use stable_structures::memory_manager::{ManagedMemory, MemoryId, MemoryManager};
@@ -8,17 +8,17 @@ use stable_structures::{
     cell::Cell as StableCell, log::Log, DefaultMemoryImpl, RestrictedMemory, StableBTreeMap,
     Storable, WASM_PAGE_SIZE,
 };
-use std::borrow::{Borrow, Cow};
+use std::borrow::Cow;
 use std::cell::RefCell;
-use std::collections::BTreeMap;
 
 type Memory = RestrictedMemory<DefaultMemoryImpl>;
 type StableLog = Log<ManagedMemory<Memory>, ManagedMemory<Memory>>;
 type ConfigCell = StableCell<LogConfig, Memory>;
+type UserIndex = StableBTreeMap<ManagedMemory<Memory>, UserIndexKey, Vec<u8>>;
 
 const GIB: u64 = 1 << 30;
 /// The maximum number of Wasm pages that we allow to use for the stable storage.
-const NUM_WASM_PAGES: u64 = 4 * GIB / WASM_PAGE_SIZE;
+const MAX_WASM_PAGES: u64 = 4 * GIB / WASM_PAGE_SIZE;
 
 const LOG_INDEX_MEMORY_ID: MemoryId = MemoryId::new(0);
 const LOG_DATA_MEMORY_ID: MemoryId = MemoryId::new(1);
@@ -40,7 +40,7 @@ thread_local! {
     });
 
     /// Index to efficiently filter entries by user number.
-    static USER_INDEX: RefCell<StableBTreeMap<ManagedMemory<Memory>, UserIndexKey, Vec<u8> >> = with_memory_manager(|memory_manager| {
+    static USER_INDEX: RefCell<UserIndex> = with_memory_manager(|memory_manager| {
         RefCell::new(StableBTreeMap::new(memory_manager.get(USER_INDEX_MEMORY_ID), 5, 5))
     });
 }
@@ -52,7 +52,7 @@ fn config_memory() -> Memory {
 
 /// Creates a memory region for the append-only block list.
 fn log_memory() -> Memory {
-    RestrictedMemory::new(DefaultMemoryImpl::default(), 1..NUM_WASM_PAGES)
+    RestrictedMemory::new(DefaultMemoryImpl::default(), 1..MAX_WASM_PAGES)
 }
 
 /// A helper function to access the configuration.
@@ -68,6 +68,11 @@ fn with_memory_manager<R>(f: impl FnOnce(&MemoryManager<Memory>) -> R) -> R {
 /// A helper function to access the log.
 fn with_log<R>(f: impl FnOnce(&StableLog) -> R) -> R {
     LOG.with(|cell| f(&*cell.borrow()))
+}
+
+/// A helper function to access the user index.
+fn with_user_index<R>(f: impl FnOnce(&mut UserIndex) -> R) -> R {
+    USER_INDEX.with(|cell| f(&mut *cell.borrow_mut()))
 }
 
 /// Configuration of the II log canister.
@@ -141,4 +146,13 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
     let idx = with_log(|log| {
         log.append(entry.as_ref()).expect("failed") // TODO: handle failure correctly
     });
+
+    with_user_index(|index| {
+        let key = UserIndexKey {
+            user_number,
+            timestamp,
+            log_index: idx as u64,
+        };
+        index.insert(key, vec![]).expect("failed"); // TODO: handle failure correctly
+    })
 }
