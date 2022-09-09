@@ -203,12 +203,6 @@ pub struct LogEntry {
 }
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
-pub struct Logs {
-    // make this a vec of options to keep LogEntry extensible
-    pub entries: Vec<Option<LogEntry>>,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct DeviceDataWithoutAlias {
     pub pubkey: DeviceKey,
     pub credential_id: Option<CredentialId>,

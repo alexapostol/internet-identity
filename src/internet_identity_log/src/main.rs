@@ -104,7 +104,15 @@ impl Default for LogConfig {
     }
 }
 
-/// Configuration of the II log canister.
+#[derive(Clone, Debug, CandidType, Deserialize)]
+struct Logs {
+    // make this a vec of options to keep LogEntry extensible
+    entries: Vec<Option<LogEntry>>,
+    // timestamp of the next entry not included in this response, if any
+    next_timestamp: Option<Timestamp>,
+}
+
+/// Index key for the user index.
 #[derive(Debug)]
 struct UserIndexKey {
     user_number: UserNumber,
@@ -167,12 +175,12 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
     } as usize;
 
-    let start_idx = match index {
-        None => log.len().saturating_sub(num_entries),
-        Some(idx) => idx as usize,
-    };
-
     let entries = with_log(|log| {
+        let start_idx = match index {
+            None => log.len().saturating_sub(num_entries),
+            Some(idx) => idx as usize,
+        };
+
         let mut entries = Vec::with_capacity(log.len().min(num_entries));
         for idx in start_idx..start_idx + num_entries {
             let entry = match log.get(idx) {
@@ -185,7 +193,41 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         }
         entries
     });
-    Logs { entries }
+    Logs {
+        entries,
+        next_timestamp: None,
+    }
+}
+
+#[query]
+fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u16>) -> Logs {
+    let num_entries = match limit {
+        None => MAX_ENTRIES_PER_CALL,
+        Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
+    } as usize;
+
+    let iterator = with_user_index(|index| {
+        index.range(
+            user_number.to_le_bytes().to_vec(),
+            timestamp.map(|t| t.to_le_bytes().to_vec()),
+        )
+    });
+
+    let entries = with_log(|log| {
+        iterator
+            .take(num_entries)
+            .map(|(user_key, _)| {
+                log.get(user_key.log_index as usize)
+                    .expect("bug: index to none-existing entry")
+            })
+            .map(|entry| candid::decode_one(&entry).expect("failed to decode log entry"))
+            .collect()
+    });
+
+    Logs {
+        entries,
+        next_timestamp: None,
+    }
 }
 
 fn main() {}
