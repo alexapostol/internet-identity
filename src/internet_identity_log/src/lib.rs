@@ -20,6 +20,9 @@ const GIB: u64 = 1 << 30;
 /// The maximum number of Wasm pages that we allow to use for the stable storage.
 const MAX_WASM_PAGES: u64 = 4 * GIB / WASM_PAGE_SIZE;
 
+/// The maximum number of entries returned in a single read canister call.
+const MAX_ENTRIES_PER_CALL: usize = 1000;
+
 const LOG_INDEX_MEMORY_ID: MemoryId = MemoryId::new(0);
 const LOG_DATA_MEMORY_ID: MemoryId = MemoryId::new(1);
 const USER_INDEX_MEMORY_ID: MemoryId = MemoryId::new(2);
@@ -161,12 +164,12 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
 fn get_logs(index: Option<u64>) -> Logs {
     let entries = with_log(|log| {
         let start_idx = match index {
-            None => log.len().saturating_sub(1000),
+            None => log.len().saturating_sub(MAX_ENTRIES_PER_CALL),
             Some(idx) => idx as usize,
         };
 
-        let mut entries = Vec::with_capacity(log.len().min(1000));
-        for idx in start_idx.. {
+        let mut entries = Vec::with_capacity(log.len().min(MAX_ENTRIES_PER_CALL));
+        for idx in start_idx..start_idx + MAX_ENTRIES_PER_CALL {
             let entry = match log.get(idx) {
                 None => break,
                 Some(entry) => entry,
