@@ -1,6 +1,6 @@
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::{caller, trap};
-use ic_cdk_macros::update;
+use ic_cdk_macros::{query, update};
 use internet_identity_interface::*;
 use serde_bytes::ByteBuf;
 use stable_structures::memory_manager::{ManagedMemory, MemoryId, MemoryManager};
@@ -155,4 +155,27 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
         };
         index.insert(key, vec![]).expect("failed"); // TODO: handle failure correctly
     })
+}
+
+#[query]
+fn get_logs(index: Option<u64>) -> Logs {
+    let entries = with_log(|log| {
+        let start_idx = match index {
+            None => log.len().saturating_sub(1000),
+            Some(idx) => idx as usize,
+        };
+
+        let mut entries = Vec::with_capacity(log.len().min(1000));
+        for idx in start_idx.. {
+            let entry = match log.get(idx) {
+                None => break,
+                Some(entry) => entry,
+            };
+            entries.push(Some(
+                candid::decode_one(&entry).expect("failed to decode log entry"),
+            ))
+        }
+        entries
+    });
+    Logs { entries }
 }
