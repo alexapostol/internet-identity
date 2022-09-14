@@ -224,17 +224,21 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
 }
 
 #[query]
-fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u16>) -> UserLogs {
+fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -> UserLogs {
     let num_entries = match limit {
         None => MAX_ENTRIES_PER_CALL,
         Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
     } as usize;
 
     with_user_index(|index| {
-        let iterator = index.range(
-            user_number.to_le_bytes().to_vec(),
-            timestamp.map(|t| t.to_le_bytes().to_vec()),
-        );
+        let iterator = match cursor {
+            None => index.range(user_number.to_le_bytes().to_vec(), None),
+            Some(Cursor::NextToken { next_token }) => index.range(next_token.into_vec(), None),
+            Some(Cursor::Timestamp { timestamp }) => index.range(
+                user_number.to_le_bytes().to_vec(),
+                Some(timestamp.to_le_bytes().to_vec()),
+            ),
+        };
 
         with_log(|log| {
             let mut entries: Vec<(UserIndexKey, Vec<u8>)> = iterator
