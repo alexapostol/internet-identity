@@ -112,4 +112,8 @@ then
     ic-cdk-optimizer \
         "$CARGO_TARGET_DIR/$TARGET/release/internet_identity.wasm" \
         -o "./internet_identity.wasm"
+
+    ic-cdk-optimizer \
+            "$CARGO_TARGET_DIR/$TARGET/release/internet_identity_log.wasm" \
+            -o "./internet_identity_log.wasm"
 fi
