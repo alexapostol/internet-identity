@@ -230,4 +230,12 @@ fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u
     }
 }
 
+/// This makes this Candid service self-describing, so that for example Candid UI, but also other
+/// tools, can seamlessly integrate with it. The concrete interface (method name etc.) is
+/// provisional, but works.
+#[query]
+fn __get_candid_interface_tmp_hack() -> String {
+    include_str!("../internet_identity_log.did").to_string()
+}
+
 fn main() {}
