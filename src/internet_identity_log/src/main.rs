@@ -1,4 +1,3 @@
-use crate::Cursor::{Index, Timestamp};
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::{caller, trap};
 use ic_cdk_macros::{query, update};
@@ -191,7 +190,7 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         };
 
         let cursor = if start_idx + num_entries < length {
-            Some(Index {
+            Some(Cursor::Index {
                 index: (start_idx + num_entries + 1) as u64,
             })
         } else {
@@ -225,28 +224,27 @@ fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u
         Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
     } as usize;
 
-    let iterator = with_user_index(|index| {
-        index.range(
+    let mut entries: Vec<Option<LogEntry>> = with_user_index(|index| {
+        let iterator = index.range(
             user_number.to_le_bytes().to_vec(),
             timestamp.map(|t| t.to_le_bytes().to_vec()),
-        )
-    });
-
-    let mut entries = with_log(|log| {
-        iterator
-            .take(num_entries + 1) // take one too many to extract the timestamp for the cursor
-            .map(|(user_key, _)| {
-                log.get(user_key.log_index as usize)
-                    .expect("bug: index to none-existing entry")
-            })
-            .map(|entry| candid::decode_one(&entry).expect("failed to decode log entry"))
-            .collect()
+        );
+        with_log(|log| {
+            iterator
+                .take(num_entries + 1) // take one too many to extract the timestamp for the cursor
+                .map(|(user_key, _)| {
+                    log.get(user_key.log_index as usize)
+                        .expect("bug: index to none-existing entry")
+                })
+                .map(|entry| candid::decode_one(&entry).expect("failed to decode log entry"))
+                .collect()
+        })
     });
 
     let cursor = if entries.len() > num_entries {
         let last_entry = entries.pop();
-        Some(Timestamp {
-            timestamp: last_entry.unwrap().timestamp,
+        Some(Cursor::Timestamp {
+            timestamp: last_entry.unwrap().unwrap().timestamp,
         })
     } else {
         None
