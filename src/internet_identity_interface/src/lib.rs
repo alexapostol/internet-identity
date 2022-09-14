@@ -228,6 +228,32 @@ pub enum Hidden {
     HiddenForPrivacyReasons,
 }
 
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct Logs {
+    // make this a vec of options to keep LogEntry extensible
+    pub entries: Vec<Option<LogEntry>>,
+    // index pointing to the next entry not included in this response, if any
+    pub next_idx: Option<u64>,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct UserLogs {
+    // make this a vec of options to keep LogEntry extensible
+    pub entries: Vec<Option<LogEntry>>,
+    // cursor pointing to the next entry not included in this response, if any
+    pub cursor: Option<Cursor>,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub enum Cursor {
+    // timestamp of the next entry not included in this response, if any
+    #[serde(rename = "timestamp")]
+    Timestamp { timestamp: Timestamp },
+    // index of the next entry not included in this response, if any
+    #[serde(rename = "next_token")]
+    NextToken { next_token: ByteBuf },
+}
+
 /// Init arguments of the II log canister.
 #[derive(CandidType, Deserialize)]
 pub struct LogInit {

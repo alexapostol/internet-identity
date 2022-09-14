@@ -104,30 +104,6 @@ impl Default for LogConfig {
     }
 }
 
-#[derive(Clone, Debug, CandidType, Deserialize)]
-struct Logs {
-    // make this a vec of options to keep LogEntry extensible
-    entries: Vec<Option<LogEntry>>,
-    // index pointing to the next entry not included in this response, if any
-    next_idx: Option<u64>,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize)]
-struct UserLogs {
-    // make this a vec of options to keep LogEntry extensible
-    entries: Vec<Option<LogEntry>>,
-    // cursor pointing to the next entry not included in this response, if any
-    cursor: Option<Cursor>,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize)]
-enum Cursor {
-    // timestamp of the next entry not included in this response, if any
-    Timestamp { timestamp: Timestamp },
-    // index of the next entry not included in this response, if any
-    NextToken { next_token: ByteBuf },
-}
-
 /// Index key for the user index.
 #[derive(Debug)]
 struct UserIndexKey {
