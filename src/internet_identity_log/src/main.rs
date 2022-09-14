@@ -1,6 +1,6 @@
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::{caller, trap};
-use ic_cdk_macros::{query, update};
+use ic_cdk_macros::{init, query, update};
 use internet_identity_interface::*;
 use serde_bytes::ByteBuf;
 use stable_structures::memory_manager::{ManagedMemory, MemoryId, MemoryManager};
@@ -18,7 +18,7 @@ type UserIndex = StableBTreeMap<ManagedMemory<Memory>, UserIndexKey, Vec<u8>>;
 
 const GIB: u64 = 1 << 30;
 /// The maximum number of Wasm pages that we allow to use for the stable storage.
-const MAX_WASM_PAGES: u64 = 4 * GIB / WASM_PAGE_SIZE;
+const MAX_WASM_PAGES: u64 = 8 * GIB / WASM_PAGE_SIZE;
 
 /// The maximum number of entries returned in a single read canister call.
 const MAX_ENTRIES_PER_CALL: u16 = 1000;
@@ -240,7 +240,7 @@ fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -
                 .map(|(user_key, _)| {
                     let entry = log
                         .get(user_key.log_index as usize)
-                        .expect("bug: index to none-existing entry");
+                        .expect("bug: index to non-existing entry");
                     (user_key, entry)
                 })
                 .collect();
@@ -261,6 +261,25 @@ fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -
             UserLogs { entries, cursor }
         })
     })
+}
+
+/// Init arguments of the II log canister.
+#[derive(CandidType, Deserialize)]
+struct LogInit {
+    ii_canister: Principal,
+}
+
+#[init]
+fn init(maybe_arg: Option<LogInit>) {
+    if let Some(arg) = maybe_arg {
+        CONFIG.with(|cell| {
+            cell.borrow_mut()
+                .set(LogConfig {
+                    ii_canister: arg.ii_canister,
+                })
+                .expect("failed to set log config");
+        });
+    }
 }
 
 /// This makes this Candid service self-describing, so that for example Candid UI, but also other
