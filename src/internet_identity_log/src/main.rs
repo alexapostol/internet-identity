@@ -108,6 +108,14 @@ impl Default for LogConfig {
 struct Logs {
     // make this a vec of options to keep LogEntry extensible
     entries: Vec<Option<LogEntry>>,
+    // index pointing to the next entry not included in this response, if any
+    next_idx: Option<u64>,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+struct UserLogs {
+    // make this a vec of options to keep LogEntry extensible
+    entries: Vec<Option<LogEntry>>,
     // cursor pointing to the next entry not included in this response, if any
     cursor: Option<Cursor>,
 }
@@ -117,7 +125,7 @@ enum Cursor {
     // timestamp of the next entry not included in this response, if any
     Timestamp { timestamp: Timestamp },
     // index of the next entry not included in this response, if any
-    Index { index: u64 },
+    NextToken { next_token: ByteBuf },
 }
 
 /// Index key for the user index.
@@ -182,22 +190,20 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         .map(|l| l.min(MAX_ENTRIES_PER_CALL))
         .unwrap_or(MAX_ENTRIES_PER_CALL) as usize;
 
-    let (start_idx, cursor) = with_log(|log| {
+    let (start_idx, next_idx) = with_log(|log| {
         let length = log.len();
         let start_idx = match index {
             None => length.saturating_sub(num_entries),
             Some(idx) => idx as usize,
         };
 
-        let cursor = if start_idx + num_entries < length {
-            Some(Cursor::Index {
-                index: (start_idx + num_entries + 1) as u64,
-            })
+        let next_idx = if start_idx + num_entries < length {
+            Some((start_idx + num_entries + 1) as u64)
         } else {
             None
         };
 
-        (start_idx, cursor)
+        (start_idx, next_idx)
     });
 
     let entries = with_log(|log| {
@@ -214,43 +220,49 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         entries
     });
 
-    Logs { entries, cursor }
+    Logs { entries, next_idx }
 }
 
 #[query]
-fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u16>) -> Logs {
+fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u16>) -> UserLogs {
     let num_entries = match limit {
         None => MAX_ENTRIES_PER_CALL,
         Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
     } as usize;
 
-    let mut entries: Vec<Option<LogEntry>> = with_user_index(|index| {
+    let (entries, cursor) = with_user_index(|index| {
         let iterator = index.range(
             user_number.to_le_bytes().to_vec(),
             timestamp.map(|t| t.to_le_bytes().to_vec()),
         );
         with_log(|log| {
-            iterator
+            let mut intermediate: Vec<(UserIndexKey, Vec<u8>)> = iterator
                 .take(num_entries + 1) // take one too many to extract the timestamp for the cursor
                 .map(|(user_key, _)| {
-                    log.get(user_key.log_index as usize)
-                        .expect("bug: index to none-existing entry")
+                    let entry = log
+                        .get(user_key.log_index as usize)
+                        .expect("bug: index to none-existing entry");
+                    (user_key, entry)
                 })
-                .map(|entry| candid::decode_one(&entry).expect("failed to decode log entry"))
-                .collect()
+                .collect();
+
+            let cursor = if intermediate.len() > num_entries {
+                intermediate.pop().map(|(key, _)| Cursor::NextToken {
+                    next_token: ByteBuf::from(key.to_bytes()),
+                })
+            } else {
+                None
+            };
+
+            let entries = intermediate
+                .iter()
+                .map(|(_, entry)| candid::decode_one(&entry).expect("failed to decode log entry"))
+                .collect();
+            (entries, cursor)
         })
     });
 
-    let cursor = if entries.len() > num_entries {
-        let last_entry = entries.pop();
-        Some(Cursor::Timestamp {
-            timestamp: last_entry.unwrap().unwrap().timestamp,
-        })
-    } else {
-        None
-    };
-
-    Logs { entries, cursor }
+    UserLogs { entries, cursor }
 }
 
 /// This makes this Candid service self-describing, so that for example Candid UI, but also other
