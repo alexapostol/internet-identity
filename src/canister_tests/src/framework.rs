@@ -19,18 +19,26 @@ use std::time::{Duration, SystemTime};
 
 /* The first few lines deal with actually getting the Wasm module(s) to test */
 
-lazy_static! {
-    /** The Wasm module for the current build, i.e. the one we're testing */
-    pub static ref II_WASM: Vec<u8> = {
-        let def_path = path::PathBuf::from("..").join("..").join("internet_identity.wasm");
-        let err = format!("
-        Could not find Internet Identity Wasm module for current build.
+const CURRENT_WASM_NOT_FOUND_NOTICE: &str = "
+        Could not find {} Wasm module for current build.
 
         I will look for it at {:?}, and you can specify another path with the environment variable II_WASM (note that I run from {:?}).
 
         In order to build the Wasm module, please run the following command:
             II_DUMMY_CAPTCHA=1 ./scripts/build
-        ", &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
+        ";
+lazy_static! {
+    /** The Wasm module for the current II build, i.e. the one we're testing */
+    pub static ref II_WASM: Vec<u8> = {
+        let def_path = path::PathBuf::from("..").join("..").join("internet_identity.wasm");
+        let err = format!(CURRENT_WASM_NOT_FOUND_NOTICE,"Internet Identity" ,  &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
+        get_wasm_path("II_WASM".to_string(), &def_path).expect(&err)
+    };
+
+    /** The Wasm module for the current II log build, i.e. the one we're testing */
+    pub static ref II_LOG_WASM: Vec<u8> = {
+        let def_path = path::PathBuf::from("..").join("..").join("internet_identity.wasm");
+        let err = format!(CURRENT_WASM_NOT_FOUND_NOTICE,"Internet Identity Log" , &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
         get_wasm_path("II_WASM".to_string(), &def_path).expect(&err)
     };
 

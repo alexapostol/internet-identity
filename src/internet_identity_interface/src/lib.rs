@@ -227,3 +227,9 @@ pub struct DeviceDataUpdate {
 pub enum Hidden {
     HiddenForPrivacyReasons,
 }
+
+/// Init arguments of the II log canister.
+#[derive(CandidType, Deserialize)]
+pub struct LogInit {
+    pub ii_canister: Principal,
+}

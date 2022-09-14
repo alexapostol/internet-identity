@@ -1,6 +1,7 @@
 /**
  * Here you'll find the various modules related to testing the II canister:
  *  * `tests`: The most important module with the actual tests
+ *  * `log_tests`: The module with tests for the log canister
  *  * `api`: Rust-bindings for the II canister
  *  * `framework`: Helpers of various kinds for writing tests.
  *  * `flows`: Reusable flows consisting of multiple II interactions
@@ -17,7 +18,13 @@
 mod tests;
 
 #[cfg(test)]
+mod log_tests;
+
+#[cfg(test)]
 mod api;
+
+#[cfg(test)]
+mod log_api;
 
 #[cfg(test)]
 mod framework;

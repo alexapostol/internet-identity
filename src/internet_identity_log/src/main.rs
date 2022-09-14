@@ -263,12 +263,6 @@ fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -
     })
 }
 
-/// Init arguments of the II log canister.
-#[derive(CandidType, Deserialize)]
-struct LogInit {
-    ii_canister: Principal,
-}
-
 #[init]
 fn init(maybe_arg: Option<LogInit>) {
     if let Some(arg) = maybe_arg {
