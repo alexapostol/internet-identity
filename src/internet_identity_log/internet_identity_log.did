@@ -17,7 +17,9 @@ type HttpResponse = record {
 
 type Timestamp = nat64;
 type UserNumber = nat64;
+type CredentialId = blob;
 type PublicKey = blob;
+type DeviceKey = PublicKey;
 
 type Purpose = variant {
     recovery;
