@@ -190,7 +190,7 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         .map(|l| l.min(MAX_ENTRIES_PER_CALL))
         .unwrap_or(MAX_ENTRIES_PER_CALL) as usize;
 
-    let (start_idx, next_idx) = with_log(|log| {
+    with_log(|log| {
         let length = log.len();
         let start_idx = match index {
             None => length.saturating_sub(num_entries),
@@ -203,10 +203,6 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
             None
         };
 
-        (start_idx, next_idx)
-    });
-
-    let entries = with_log(|log| {
         let mut entries = Vec::with_capacity(log.len().min(num_entries));
         for idx in start_idx..start_idx + num_entries {
             let entry = match log.get(idx) {
@@ -217,10 +213,8 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
                 candid::decode_one(&entry).expect("failed to decode log entry"),
             ))
         }
-        entries
-    });
-
-    Logs { entries, next_idx }
+        Logs { entries, next_idx }
+    })
 }
 
 #[query]
