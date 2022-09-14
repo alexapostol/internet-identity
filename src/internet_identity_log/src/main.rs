@@ -230,14 +230,15 @@ fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u
         Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
     } as usize;
 
-    let (entries, cursor) = with_user_index(|index| {
+    with_user_index(|index| {
         let iterator = index.range(
             user_number.to_le_bytes().to_vec(),
             timestamp.map(|t| t.to_le_bytes().to_vec()),
         );
+
         with_log(|log| {
-            let mut intermediate: Vec<(UserIndexKey, Vec<u8>)> = iterator
-                .take(num_entries + 1) // take one too many to extract the timestamp for the cursor
+            let mut entries: Vec<(UserIndexKey, Vec<u8>)> = iterator
+                .take(num_entries + 1) // take one too many to extract the cursor
                 .map(|(user_key, _)| {
                     let entry = log
                         .get(user_key.log_index as usize)
@@ -246,23 +247,22 @@ fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u
                 })
                 .collect();
 
-            let cursor = if intermediate.len() > num_entries {
-                intermediate.pop().map(|(key, _)| Cursor::NextToken {
+            let cursor = if entries.len() > num_entries {
+                entries.pop().map(|(key, _)| Cursor::NextToken {
                     next_token: ByteBuf::from(key.to_bytes()),
                 })
             } else {
                 None
             };
 
-            let entries = intermediate
+            let entries = entries
                 .iter()
                 .map(|(_, entry)| candid::decode_one(&entry).expect("failed to decode log entry"))
                 .collect();
-            (entries, cursor)
-        })
-    });
 
-    UserLogs { entries, cursor }
+            UserLogs { entries, cursor }
+        })
+    })
 }
 
 /// This makes this Candid service self-describing, so that for example Candid UI, but also other
