@@ -1,3 +1,4 @@
+use crate::Cursor::{Index, Timestamp};
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::{caller, trap};
 use ic_cdk_macros::{query, update};
@@ -108,8 +109,16 @@ impl Default for LogConfig {
 struct Logs {
     // make this a vec of options to keep LogEntry extensible
     entries: Vec<Option<LogEntry>>,
+    // cursor pointing to the next entry not included in this response, if any
+    cursor: Option<Cursor>,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+enum Cursor {
     // timestamp of the next entry not included in this response, if any
-    next_timestamp: Option<Timestamp>,
+    Timestamp { timestamp: Timestamp },
+    // index of the next entry not included in this response, if any
+    Index { index: u64 },
 }
 
 /// Index key for the user index.
@@ -170,17 +179,29 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
 
 #[query]
 fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
-    let num_entries = match limit {
-        None => MAX_ENTRIES_PER_CALL,
-        Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
-    } as usize;
+    let num_entries = limit
+        .map(|l| l.min(MAX_ENTRIES_PER_CALL))
+        .unwrap_or(MAX_ENTRIES_PER_CALL) as usize;
 
-    let entries = with_log(|log| {
+    let (start_idx, cursor) = with_log(|log| {
+        let length = log.len();
         let start_idx = match index {
-            None => log.len().saturating_sub(num_entries),
+            None => length.saturating_sub(num_entries),
             Some(idx) => idx as usize,
         };
 
+        let cursor = if start_idx + num_entries < length {
+            Some(Index {
+                index: (start_idx + num_entries + 1) as u64,
+            })
+        } else {
+            None
+        };
+
+        (start_idx, cursor)
+    });
+
+    let entries = with_log(|log| {
         let mut entries = Vec::with_capacity(log.len().min(num_entries));
         for idx in start_idx..start_idx + num_entries {
             let entry = match log.get(idx) {
@@ -193,10 +214,8 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         }
         entries
     });
-    Logs {
-        entries,
-        next_timestamp: None,
-    }
+
+    Logs { entries, cursor }
 }
 
 #[query]
@@ -213,9 +232,9 @@ fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u
         )
     });
 
-    let entries = with_log(|log| {
+    let mut entries = with_log(|log| {
         iterator
-            .take(num_entries)
+            .take(num_entries + 1) // take one too many to extract the timestamp for the cursor
             .map(|(user_key, _)| {
                 log.get(user_key.log_index as usize)
                     .expect("bug: index to none-existing entry")
@@ -224,10 +243,16 @@ fn get_user_logs(user_number: u64, timestamp: Option<Timestamp>, limit: Option<u
             .collect()
     });
 
-    Logs {
-        entries,
-        next_timestamp: None,
-    }
+    let cursor = if entries.len() > num_entries {
+        let last_entry = entries.pop();
+        Some(Timestamp {
+            timestamp: last_entry.unwrap().timestamp,
+        })
+    } else {
+        None
+    };
+
+    Logs { entries, cursor }
 }
 
 /// This makes this Candid service self-describing, so that for example Candid UI, but also other
