@@ -200,6 +200,8 @@ pub struct LogEntry {
     pub operation: OperationType,
     pub timestamp: Timestamp,
     pub caller: Principal,
+    // global sequence number to detect lost messages (if any)
+    pub sequence_number: u64,
 }
 
 #[derive(Eq, PartialEq, Clone, Debug, CandidType, Deserialize)]

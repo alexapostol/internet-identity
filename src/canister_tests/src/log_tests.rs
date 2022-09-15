@@ -55,7 +55,7 @@ fn should_write_entry() -> Result<(), CallError> {
 }
 
 #[test]
-fn should_return_previously_written_entry() -> Result<(), CallError> {
+fn should_read_previously_written_entry() -> Result<(), CallError> {
     let env = StateMachine::new();
 
     let canister_id = env

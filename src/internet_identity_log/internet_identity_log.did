@@ -59,6 +59,7 @@ type LogEntry = record {
     operation: OperationType;
     timestamp: Timestamp;
     caller: PublicKey;
+    sequence_number: nat64;
 };
 
 type DeviceDataWithoutAlias = record {
