@@ -1,5 +1,5 @@
 [package]
-name = "internet_identity_log"
+name = "archive"
 description = "Internet Identity Log Canister"
 version = "0.1.0"
 edition = "2021"

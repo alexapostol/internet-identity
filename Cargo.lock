@@ -65,6 +65,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "983cd8b9d4b02a6dc6ffa557262eb5858a27a0038ffffe21a0f133eaa819a164"
 
 [[package]]
+name = "archive"
+version = "0.1.0"
+dependencies = [
+ "candid",
+ "ic-cdk",
+ "ic-cdk-macros",
+ "internet_identity_interface",
+ "serde",
+ "serde_bytes",
+ "serde_cbor",
+ "serde_with 2.0.0",
+ "stable-structures",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3308,21 +3323,6 @@ dependencies = [
  "candid",
  "serde",
  "serde_bytes",
-]
-
-[[package]]
-name = "internet_identity_log"
-version = "0.1.0"
-dependencies = [
- "candid",
- "ic-cdk",
- "ic-cdk-macros",
- "internet_identity_interface",
- "serde",
- "serde_bytes",
- "serde_cbor",
- "serde_with 2.0.0",
- "stable-structures",
 ]
 
 [[package]]

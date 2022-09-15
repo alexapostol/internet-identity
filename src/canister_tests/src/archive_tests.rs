@@ -19,15 +19,7 @@ const TIMESTAMP_2: UserNumber = 999992;
 #[test]
 fn should_install() -> Result<(), CallError> {
     let env = StateMachine::new();
-
-    let canister_id = env
-        .install_canister(
-            framework::II_LOG_WASM.clone(),
-            encoded_log_config(principal_1().0),
-            None,
-        )
-        .unwrap();
-
+    let canister_id = install_archive_canister(&env);
     let logs = log_api::get_logs(&env, canister_id, principal_1(), None, None)?;
     assert_eq!(logs.entries.len(), 0);
     Ok(())
@@ -36,7 +28,7 @@ fn should_install() -> Result<(), CallError> {
 #[test]
 fn should_write_entry() -> Result<(), CallError> {
     let env = StateMachine::new();
-    let canister_id = install_log_canister(&env);
+    let canister_id = install_archive_canister(&env);
 
     log_api::add_entry(
         &env,
@@ -52,7 +44,7 @@ fn should_write_entry() -> Result<(), CallError> {
 #[test]
 fn should_read_previously_written_entry() -> Result<(), CallError> {
     let env = StateMachine::new();
-    let canister_id = install_log_canister(&env);
+    let canister_id = install_archive_canister(&env);
 
     log_api::add_entry(
         &env,
@@ -74,7 +66,7 @@ fn should_read_previously_written_entry() -> Result<(), CallError> {
 #[test]
 fn should_return_logs_per_user() -> Result<(), CallError> {
     let env = StateMachine::new();
-    let canister_id = install_log_canister(&env);
+    let canister_id = install_archive_canister(&env);
 
     log_api::add_entry(
         &env,
@@ -122,7 +114,7 @@ fn should_return_logs_per_user() -> Result<(), CallError> {
 #[test]
 fn should_return_cursor() -> Result<(), CallError> {
     let env = StateMachine::new();
-    let canister_id = install_log_canister(&env);
+    let canister_id = install_archive_canister(&env);
 
     for n in 0..=10 {
         println!("{}", n);
@@ -144,9 +136,9 @@ fn should_return_cursor() -> Result<(), CallError> {
     Ok(())
 }
 
-fn install_log_canister(env: &StateMachine) -> CanisterId {
+fn install_archive_canister(env: &StateMachine) -> CanisterId {
     env.install_canister(
-        framework::II_LOG_WASM.clone(),
+        framework::ARCHIVE_WASM.clone(),
         encoded_log_config(principal_1().0),
         None,
     )

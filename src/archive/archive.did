@@ -98,11 +98,11 @@ type Logs = record {
   next_idx: opt nat64 // next index to fetch the next page of log entries (if any)
 };
 
-type LogInit = record {
+type ArchiveInit = record {
   ii_canister: principal;
 };
 
-service : (opt LogInit) -> {
+service : (opt ArchiveInit) -> {
 
   // Returns the logs for the given user number. If a timestamp is given, only the logs starting from that timestamp are
   // returned. Use the Cursor to skip to later log entries.

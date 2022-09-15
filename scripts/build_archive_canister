@@ -11,7 +11,7 @@ cd "$SCRIPTS_DIR/.."
 #########
 
 function title() {
-    echo "Build Internet Identity Log Canister"
+    echo "Build Archive Canister"
 }
 
 function usage() {
@@ -28,7 +28,7 @@ EOF
 function help() {
     cat << EOF
 
-Builds the Internet Identity Log canister.
+Builds the Internet Identity Archive canister.
 
 NOTE: This requires a working rust toolchain as well as ic-cdk-optimizer.
 EOF
@@ -69,7 +69,7 @@ then
     exit 1
 fi
 
-II_LOG_DIR="$PWD/src/internet_identity_log"
+ARCHIVE_DIR="$PWD/src/archive"
 TARGET="wasm32-unknown-unknown"
 
 # standardize source references
@@ -77,7 +77,7 @@ CARGO_HOME="${CARGO_HOME:-"$HOME/.cargo"}"
 RUSTFLAGS="--remap-path-prefix $CARGO_HOME=/cargo"
 
 cargo_build_args=(
-    --manifest-path "$II_LOG_DIR/Cargo.toml"
+    --manifest-path "$ARCHIVE_DIR/Cargo.toml"
     --target "$TARGET"
     --release
     -j1
@@ -89,8 +89,8 @@ RUSTFLAGS="$RUSTFLAGS" cargo build "${cargo_build_args[@]}"
 
 if [ "$ONLY_DEPS" != "1" ]
 then
-    CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$II_LOG_DIR/../../target/}"
+    CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$ARCHIVE_DIR/../../target/}"
     ic-cdk-optimizer \
-            "$CARGO_TARGET_DIR/$TARGET/release/internet_identity_log.wasm" \
-            -o "./internet_identity_log.wasm"
+            "$CARGO_TARGET_DIR/$TARGET/release/archive.wasm" \
+            -o "./archive.wasm"
 fi

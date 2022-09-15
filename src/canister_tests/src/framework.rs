@@ -29,10 +29,10 @@ lazy_static! {
     };
 
     /** The Wasm module for the current II log build, i.e. the one we're testing */
-    pub static ref II_LOG_WASM: Vec<u8> = {
-        let def_path = path::PathBuf::from("..").join("..").join("internet_identity_log.wasm");
-        let err = current_wasm_error_msg("Internet Identity Log", &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
-        get_wasm_path("II_LOG_WASM".to_string(), &def_path).expect(&err)
+    pub static ref ARCHIVE_WASM: Vec<u8> = {
+        let def_path = path::PathBuf::from("..").join("..").join("archive.wasm");
+        let err = current_wasm_error_msg("Archive", &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
+        get_wasm_path("ARCHIVE_WASM".to_string(), &def_path).expect(&err)
     };
 
     /** The Wasm module for the _previous_ build, or latest release, which is used when testing

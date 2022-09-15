@@ -6,10 +6,10 @@
       "wasm": "internet_identity.wasm",
       "build": "scripts/build"
     },
-    "internet_identity_log": {
+    "archive": {
       "type": "rust",
-      "package": "internet_identity_log",
-      "candid": "src/internet_identity_log/internet_identity_log.did"
+      "package": "archive",
+      "candid": "src/archive/archive.did"
     }
   },
   "defaults": {

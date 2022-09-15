@@ -13,7 +13,7 @@ use std::cell::RefCell;
 
 type Memory = RestrictedMemory<DefaultMemoryImpl>;
 type StableLog = Log<ManagedMemory<Memory>, ManagedMemory<Memory>>;
-type ConfigCell = StableCell<LogConfig, Memory>;
+type ConfigCell = StableCell<ArchiveConfig, Memory>;
 type UserIndex = StableBTreeMap<ManagedMemory<Memory>, UserIndexKey, Vec<u8>>;
 
 const GIB: u64 = 1 << 30;
@@ -31,7 +31,7 @@ thread_local! {
     /// Static configuration of the archive that init() sets once.
     static CONFIG: RefCell<ConfigCell> = RefCell::new(ConfigCell::init(
         config_memory(),
-        LogConfig::default(),
+        ArchiveConfig::default(),
     ).expect("failed to initialize stable cell"));
 
     /// Static memory manager to manage the memory available for blocks.
@@ -59,7 +59,7 @@ fn log_memory() -> Memory {
 }
 
 /// A helper function to access the configuration.
-fn with_config<R>(f: impl FnOnce(&LogConfig) -> R) -> R {
+fn with_config<R>(f: impl FnOnce(&ArchiveConfig) -> R) -> R {
     CONFIG.with(|cell| f(cell.borrow().get()))
 }
 
@@ -78,27 +78,27 @@ fn with_user_index<R>(f: impl FnOnce(&mut UserIndex) -> R) -> R {
     USER_INDEX.with(|cell| f(&mut *cell.borrow_mut()))
 }
 
-/// Configuration of the II log canister.
+/// Configuration of the archive canister.
 #[derive(Clone, Debug, CandidType, Deserialize)]
-struct LogConfig {
+struct ArchiveConfig {
     /// This canister will accept entries only from this principal.
     ii_canister: Principal,
     /// The maximum number of entries returned in a single read canister call.
     max_entries_per_call: u16,
 }
 
-impl Storable for LogConfig {
+impl Storable for ArchiveConfig {
     fn to_bytes(&self) -> Cow<[u8]> {
         let buf = candid::encode_one(&self).expect("failed to encode log config");
         Cow::Owned(buf)
     }
 
     fn from_bytes(bytes: Vec<u8>) -> Self {
-        candid::decode_one::<LogConfig>(&bytes).expect("failed to decode log options")
+        candid::decode_one::<ArchiveConfig>(&bytes).expect("failed to decode log options")
     }
 }
 
-impl Default for LogConfig {
+impl Default for ArchiveConfig {
     fn default() -> Self {
         Self {
             ii_canister: Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap(),
@@ -256,7 +256,7 @@ fn init(maybe_arg: Option<LogInit>) {
     if let Some(arg) = maybe_arg {
         CONFIG.with(|cell| {
             cell.borrow_mut()
-                .set(LogConfig {
+                .set(ArchiveConfig {
                     ii_canister: arg.ii_canister,
                     max_entries_per_call: arg.max_entries_per_call,
                 })
@@ -270,7 +270,7 @@ fn init(maybe_arg: Option<LogInit>) {
 /// provisional, but works.
 #[query]
 fn __get_candid_interface_tmp_hack() -> String {
-    include_str!("../internet_identity_log.did").to_string()
+    include_str!("../archive.did").to_string()
 }
 
 fn main() {}
