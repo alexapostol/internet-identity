@@ -102,6 +102,7 @@ type LogInit = record {
 };
 
 service : (opt LogInit) -> {
+
   // Returns the logs for the given user number. If a timestamp is given, only the logs starting from that timestamp are
   // returned. Use the Cursor to skip to later log entries.
   // This function can be called anonymously.

@@ -9,10 +9,10 @@ use internet_identity_interface::{
 use serde_bytes::ByteBuf;
 
 const USER_NUMBER_1: UserNumber = 100001;
-const USER_NUMBER_2: UserNumber = 100002;
+//const USER_NUMBER_2: UserNumber = 100002;
 
 const TIMESTAMP_1: UserNumber = 999991;
-const TIMESTAMP_2: UserNumber = 999992;
+//const TIMESTAMP_2: UserNumber = 999992;
 
 #[test]
 fn should_install() -> Result<(), CallError> {

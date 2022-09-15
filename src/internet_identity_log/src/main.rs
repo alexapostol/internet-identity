@@ -79,7 +79,7 @@ fn with_user_index<R>(f: impl FnOnce(&mut UserIndex) -> R) -> R {
 }
 
 /// Configuration of the II log canister.
-#[derive(CandidType, Deserialize)]
+#[derive(Clone, Debug, CandidType, Deserialize)]
 struct LogConfig {
     /// This canister will accept entries only from this principal.
     ii_canister: Principal,
@@ -241,7 +241,6 @@ fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -
 
 #[init]
 fn init(maybe_arg: Option<LogInit>) {
-    print(&format!("arg {:?}", maybe_arg));
     if let Some(arg) = maybe_arg {
         CONFIG.with(|cell| {
             cell.borrow_mut()
@@ -250,6 +249,9 @@ fn init(maybe_arg: Option<LogInit>) {
                 })
                 .expect("failed to set log config");
         });
+        with_config(|config| {
+            print(&format!("config is now {:?}", config));
+        })
     }
 }
 

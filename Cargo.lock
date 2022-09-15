@@ -495,30 +495,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ciborium"
-version = "0.2.0"
-source = "git+https://github.com/enarx/ciborium?rev=e719537c99b564c3674a56defe53713c702c6f46#e719537c99b564c3674a56defe53713c702c6f46"
-dependencies = [
- "ciborium-io",
- "ciborium-ll",
- "serde",
-]
-
-[[package]]
-name = "ciborium-io"
-version = "0.2.0"
-source = "git+https://github.com/enarx/ciborium?rev=e719537c99b564c3674a56defe53713c702c6f46#e719537c99b564c3674a56defe53713c702c6f46"
-
-[[package]]
-name = "ciborium-ll"
-version = "0.2.0"
-source = "git+https://github.com/enarx/ciborium?rev=e719537c99b564c3674a56defe53713c702c6f46#e719537c99b564c3674a56defe53713c702c6f46"
-dependencies = [
- "ciborium-io",
- "half",
-]
-
-[[package]]
 name = "clap"
 version = "3.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3339,7 +3315,6 @@ name = "internet_identity_log"
 version = "0.1.0"
 dependencies = [
  "candid",
- "ciborium",
  "ic-cdk",
  "ic-cdk-macros",
  "internet_identity_interface",
