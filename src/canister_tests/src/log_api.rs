@@ -30,3 +30,21 @@ pub fn get_logs(
 ) -> Result<types::Logs, CallError> {
     framework::call_candid_as(env, canister_id, sender, "get_logs", (idx, limit)).map(|(x,)| x)
 }
+
+pub fn get_user_logs(
+    env: &StateMachine,
+    canister_id: CanisterId,
+    sender: PrincipalId,
+    user_number: types::UserNumber,
+    cursor: Option<types::Cursor>,
+    limit: Option<u16>,
+) -> Result<types::UserLogs, CallError> {
+    framework::call_candid_as(
+        env,
+        canister_id,
+        sender,
+        "get_user_logs",
+        (user_number, cursor, limit),
+    )
+    .map(|(x,)| x)
+}
