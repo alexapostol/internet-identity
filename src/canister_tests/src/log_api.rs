@@ -8,9 +8,17 @@ pub fn add_entry(
     env: &StateMachine,
     canister_id: CanisterId,
     sender: PrincipalId,
+    user_number: types::UserNumber,
+    timestamp: types::Timestamp,
     entry: Vec<u8>,
 ) -> Result<(), CallError> {
-    framework::call_candid_as(env, canister_id, sender, "write_entry", (entry,))
+    framework::call_candid_as(
+        env,
+        canister_id,
+        sender,
+        "write_entry",
+        (user_number, timestamp, entry),
+    )
 }
 
 pub fn get_logs(
