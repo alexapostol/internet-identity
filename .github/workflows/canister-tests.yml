@@ -112,9 +112,10 @@ jobs:
           file: Dockerfile
           cache-from: type=gha,scope=cached-stage
           # Exports the artefacts from the final stage
-          outputs: ./
-          target: scratch_log_canister
+          outputs: ./out
+          target: build_log_canister
 
+      - run: mv out/internet_identity_log.wasm internet_identity_log.wasm
       - run: sha256sum internet_identity_log.wasm
       - name: 'Upload internet_identity_log.wasm'
         uses: actions/upload-artifact@v2
