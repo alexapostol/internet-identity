@@ -3,7 +3,7 @@ use crate::{framework, log_api};
 use candid::types::Type::Principal;
 use ic_state_machine_tests::StateMachine;
 use internet_identity_interface::LogInit;
-use serde::__private::de::Content::ByteBuf;
+use serde_bytes::ByteBuf;
 
 #[test]
 fn ii_canister_can_be_installed() -> Result<(), CallError> {
@@ -23,5 +23,7 @@ fn ii_canister_can_be_installed() -> Result<(), CallError> {
         principal_1(),
         ByteBuf::from(vec![1, 2, 3, 4]),
     )?;
-    log_api::get_logs(&env, canister_id, principal_1(), None, None)?;
+    let logs = log_api::get_logs(&env, canister_id, principal_1(), None, None)?;
+    assert_eq!(logs.entries.len(), 1);
+    Ok(())
 }

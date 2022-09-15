@@ -12,7 +12,7 @@ pub fn add_entry(
     sender: PrincipalId,
     entry: ByteBuf,
 ) -> Result<(), CallError> {
-    framework::call_candid_as(env, canister_id, sender, "write_entry", (entry))
+    framework::call_candid_as(env, canister_id, sender, "write_entry", (entry,))
 }
 
 pub fn get_logs(
@@ -22,5 +22,5 @@ pub fn get_logs(
     idx: Option<u64>,
     limit: Option<u16>,
 ) -> Result<types::Logs, CallError> {
-    framework::call_candid_as(env, canister_id, sender, "get_logs", (idx, limit))
+    framework::call_candid_as(env, canister_id, sender, "get_logs", (idx, limit)).map(|(x,)| x)
 }

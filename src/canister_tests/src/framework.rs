@@ -15,30 +15,23 @@ use regex::Regex;
 use serde_bytes::ByteBuf;
 use std::env;
 use std::path;
+use std::path::PathBuf;
 use std::time::{Duration, SystemTime};
 
 /* The first few lines deal with actually getting the Wasm module(s) to test */
 
-const CURRENT_WASM_NOT_FOUND_NOTICE: &str = "
-        Could not find {} Wasm module for current build.
-
-        I will look for it at {:?}, and you can specify another path with the environment variable II_WASM (note that I run from {:?}).
-
-        In order to build the Wasm module, please run the following command:
-            II_DUMMY_CAPTCHA=1 ./scripts/build
-        ";
 lazy_static! {
     /** The Wasm module for the current II build, i.e. the one we're testing */
     pub static ref II_WASM: Vec<u8> = {
         let def_path = path::PathBuf::from("..").join("..").join("internet_identity.wasm");
-        let err = format!(CURRENT_WASM_NOT_FOUND_NOTICE,"Internet Identity" ,  &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
+        let err = current_wasm_error_msg("Internet Identity", &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
         get_wasm_path("II_WASM".to_string(), &def_path).expect(&err)
     };
 
     /** The Wasm module for the current II log build, i.e. the one we're testing */
     pub static ref II_LOG_WASM: Vec<u8> = {
-        let def_path = path::PathBuf::from("..").join("..").join("internet_identity.wasm");
-        let err = format!(CURRENT_WASM_NOT_FOUND_NOTICE,"Internet Identity Log" , &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
+        let def_path = path::PathBuf::from("..").join("..").join("internet_identity_log.wasm");
+        let err = current_wasm_error_msg("Internet Identity Log", &def_path, &std::env::current_dir().map(|x| x.display().to_string()).unwrap_or("an unknown directory".to_string()));
         get_wasm_path("II_WASM".to_string(), &def_path).expect(&err)
     };
 
@@ -87,6 +80,20 @@ fn get_wasm_path(env_var: String, default_path: &path::PathBuf) -> Option<Vec<u8
             )
         }
     }
+}
+
+fn current_wasm_error_msg(wasm_name: &str, def_path: &PathBuf, current_dir: &str) -> String {
+    format!(
+        "
+                Could not find {} Wasm module for current build.
+        
+                I will look for it at {:?}, and you can specify another path with the environment variable II_WASM (note that I run from {:?}).
+        
+                In order to build the Wasm module, please run the following command:
+                    II_DUMMY_CAPTCHA=1 ./scripts/build
+                ",
+        wasm_name, def_path, current_dir
+    )
 }
 
 /* Here are a few useful helpers for writing tests */
