@@ -4,8 +4,8 @@ use candid::Principal;
 use ic_state_machine_tests::{CanisterId, StateMachine};
 use ic_types::PrincipalId;
 use internet_identity_interface::{
-    DeviceDataWithoutAlias, DeviceProtection, KeyType, LogEntry, LogInit, OperationType, Purpose,
-    UserNumber,
+    Cursor, DeviceDataWithoutAlias, DeviceProtection, KeyType, LogEntry, LogInit, OperationType,
+    Purpose, UserNumber,
 };
 use serde_bytes::ByteBuf;
 
@@ -133,6 +133,46 @@ fn should_return_cursor() -> Result<(), CallError> {
     assert_eq!(logs.next_idx, Some(10));
     let logs = log_api::get_logs(&env, canister_id, principal_1(), logs.next_idx, None)?;
     assert_eq!(logs.entries.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn should_return_user_cursor() -> Result<(), CallError> {
+    let env = StateMachine::new();
+    let canister_id = install_archive_canister(&env);
+
+    for n in 0..22 {
+        log_api::add_entry(
+            &env,
+            canister_id,
+            principal_1(),
+            n % 2,
+            n,
+            candid::encode_one(log_entry(n)).expect("failed to encode entry"),
+        )?;
+    }
+
+    for n in 0..2 {
+        let logs = log_api::get_user_logs(&env, canister_id, principal_1(), n, None, None)?;
+        assert_eq!(logs.entries.len(), 10);
+        assert!(matches!(
+            logs.clone().cursor,
+            Some(Cursor::NextToken { next_token: _ })
+        ));
+
+        let logs = log_api::get_user_logs(&env, canister_id, principal_1(), n, logs.cursor, None)?;
+        assert_eq!(logs.entries.len(), 1);
+        assert_eq!(
+            logs.entries
+                .get(0)
+                .unwrap()
+                .as_ref()
+                .unwrap()
+                .sequence_number,
+            20 + n
+        );
+    }
+
     Ok(())
 }
 
