@@ -56,7 +56,7 @@ RUN mkdir -p src/internet_identity/src \
     && mkdir -p src/canister_tests/src \
     && touch src/canister_tests/src/lib.rs \
     && ./scripts/build --only-dependencies \
-    && ./scripts/build_log_canister --only-dependencies \
+    && ./scripts/build_archive_canister --only-dependencies \
     && rm -rf src
 
 FROM deps as build
