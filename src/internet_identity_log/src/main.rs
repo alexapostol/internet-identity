@@ -20,9 +20,6 @@ const GIB: u64 = 1 << 30;
 /// The maximum number of Wasm pages that we allow to use for the stable storage.
 const MAX_WASM_PAGES: u64 = 8 * GIB / WASM_PAGE_SIZE;
 
-/// The maximum number of entries returned in a single read canister call.
-const MAX_ENTRIES_PER_CALL: u16 = 1000;
-
 const LOG_INDEX_MEMORY_ID: MemoryId = MemoryId::new(0);
 const LOG_DATA_MEMORY_ID: MemoryId = MemoryId::new(1);
 const USER_INDEX_MEMORY_ID: MemoryId = MemoryId::new(2);
@@ -86,6 +83,8 @@ fn with_user_index<R>(f: impl FnOnce(&mut UserIndex) -> R) -> R {
 struct LogConfig {
     /// This canister will accept entries only from this principal.
     ii_canister: Principal,
+    /// The maximum number of entries returned in a single read canister call.
+    max_entries_per_call: u16,
 }
 
 impl Storable for LogConfig {
@@ -103,6 +102,7 @@ impl Default for LogConfig {
     fn default() -> Self {
         Self {
             ii_canister: Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap(),
+            max_entries_per_call: 1000,
         }
     }
 }
@@ -171,9 +171,7 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
 
 #[query]
 fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
-    let num_entries = limit
-        .map(|l| l.min(MAX_ENTRIES_PER_CALL))
-        .unwrap_or(MAX_ENTRIES_PER_CALL) as usize;
+    let num_entries = sanitize_limit(limit);
 
     with_log(|log| {
         let length = log.len();
@@ -183,7 +181,7 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
         };
 
         let next_idx = if start_idx + num_entries < length {
-            Some((start_idx + num_entries + 1) as u64)
+            Some((start_idx + num_entries) as u64)
         } else {
             None
         };
@@ -204,10 +202,7 @@ fn get_logs(index: Option<u64>, limit: Option<u16>) -> Logs {
 
 #[query]
 fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -> UserLogs {
-    let num_entries = match limit {
-        None => MAX_ENTRIES_PER_CALL,
-        Some(limit) => MAX_ENTRIES_PER_CALL.min(limit),
-    } as usize;
+    let num_entries = sanitize_limit(limit);
 
     with_user_index(|index| {
         let iterator = match cursor {
@@ -248,6 +243,14 @@ fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -
     })
 }
 
+fn sanitize_limit(limit: Option<u16>) -> usize {
+    with_config(|config| {
+        limit
+            .map(|l| l.min(config.max_entries_per_call))
+            .unwrap_or(config.max_entries_per_call) as usize
+    })
+}
+
 #[init]
 fn init(maybe_arg: Option<LogInit>) {
     if let Some(arg) = maybe_arg {
@@ -255,6 +258,7 @@ fn init(maybe_arg: Option<LogInit>) {
             cell.borrow_mut()
                 .set(LogConfig {
                     ii_canister: arg.ii_canister,
+                    max_entries_per_call: arg.max_entries_per_call,
                 })
                 .expect("failed to set log config");
         });

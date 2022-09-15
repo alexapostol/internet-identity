@@ -2,6 +2,7 @@ use crate::framework::{principal_1, CallError, PUBKEY_1};
 use crate::{framework, log_api};
 use candid::Principal;
 use ic_state_machine_tests::{CanisterId, StateMachine};
+use ic_types::PrincipalId;
 use internet_identity_interface::{
     DeviceDataWithoutAlias, DeviceProtection, KeyType, LogEntry, LogInit, OperationType, Purpose,
     UserNumber,
@@ -118,6 +119,31 @@ fn should_return_logs_per_user() -> Result<(), CallError> {
     Ok(())
 }
 
+#[test]
+fn should_return_cursor() -> Result<(), CallError> {
+    let env = StateMachine::new();
+    let canister_id = install_log_canister(&env);
+
+    for n in 0..=10 {
+        println!("{}", n);
+        log_api::add_entry(
+            &env,
+            canister_id,
+            principal_1(),
+            n,
+            n,
+            candid::encode_one(log_entry(n)).expect("failed to encode entry"),
+        )?;
+    }
+
+    let logs = log_api::get_logs(&env, canister_id, principal_1(), Some(0), None)?;
+    assert_eq!(logs.entries.len(), 10);
+    assert_eq!(logs.next_idx, Some(10));
+    let logs = log_api::get_logs(&env, canister_id, principal_1(), logs.next_idx, None)?;
+    assert_eq!(logs.entries.len(), 1);
+    Ok(())
+}
+
 fn install_log_canister(env: &StateMachine) -> CanisterId {
     env.install_canister(
         framework::II_LOG_WASM.clone(),
@@ -130,6 +156,7 @@ fn install_log_canister(env: &StateMachine) -> CanisterId {
 fn encoded_log_config(authorized_principal: Principal) -> Vec<u8> {
     let config = LogInit {
         ii_canister: authorized_principal,
+        max_entries_per_call: 10,
     };
     candid::encode_one(Some(config)).expect("error encoding II installation arg as candid")
 }
@@ -167,5 +194,23 @@ fn log_entry_2() -> LogEntry {
             },
         },
         sequence_number: 1,
+    }
+}
+
+fn log_entry(idx: u64) -> LogEntry {
+    LogEntry {
+        timestamp: idx,
+        user_number: idx,
+        caller: PrincipalId::new_user_test_id(idx).0,
+        operation: OperationType::RegisterAnchor {
+            initial_device: DeviceDataWithoutAlias {
+                pubkey: ByteBuf::from(PUBKEY_1),
+                credential_id: None,
+                purpose: Purpose::Authentication,
+                key_type: KeyType::Unknown,
+                protection: DeviceProtection::Unprotected,
+            },
+        },
+        sequence_number: idx,
     }
 }

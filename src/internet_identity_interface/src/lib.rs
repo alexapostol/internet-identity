@@ -260,4 +260,5 @@ pub enum Cursor {
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct LogInit {
     pub ii_canister: Principal,
+    pub max_entries_per_call: u16,
 }
