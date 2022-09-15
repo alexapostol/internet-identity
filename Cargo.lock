@@ -1769,7 +1769,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "slog",
- "stable-structures 0.1.0 (git+https://github.com/dfinity/ic?rev=7464a8cf40e619666673a0939cdc88cc0dafa156)",
+ "stable-structures",
 ]
 
 [[package]]
@@ -3322,7 +3322,7 @@ dependencies = [
  "serde_bytes",
  "serde_cbor",
  "serde_with 2.0.0",
- "stable-structures 0.1.0 (git+https://github.com/dfinity/ic?rev=dc4d68663fc7d9c897602721ba59b9428dd238ef)",
+ "stable-structures",
 ]
 
 [[package]]
@@ -5176,11 +5176,6 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 name = "stable-structures"
 version = "0.1.0"
 source = "git+https://github.com/dfinity/ic?rev=9e6e9cb5c00b2c9f0968bb4f3181fe9c3acf5a99#9e6e9cb5c00b2c9f0968bb4f3181fe9c3acf5a99"
-
-[[package]]
-name = "stable-structures"
-version = "0.1.0"
-source = "git+https://github.com/dfinity/ic?rev=dc4d68663fc7d9c897602721ba59b9428dd238ef#dc4d68663fc7d9c897602721ba59b9428dd238ef"
 
 [[package]]
 name = "stable_deref_trait"

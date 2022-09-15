@@ -15,4 +15,4 @@ internet_identity_interface = { path = "../internet_identity_interface" }
 candid = "0.7"
 ic-cdk = "0.5"
 ic-cdk-macros = "0.5"
-stable-structures = { git = "https://github.com/dfinity/ic", rev = "dc4d68663fc7d9c897602721ba59b9428dd238ef" }
+stable-structures = { git = "https://github.com/dfinity/ic", rev = "9e6e9cb5c00b2c9f0968bb4f3181fe9c3acf5a99" }

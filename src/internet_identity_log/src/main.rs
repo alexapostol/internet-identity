@@ -152,7 +152,8 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
         }
     });
     let idx = with_log(|log| {
-        log.append(entry.as_ref()).expect("failed") // TODO: handle failure correctly
+        log.append(entry.as_ref())
+            .expect("failed to append log entry")
     });
 
     with_user_index(|index| {
@@ -161,7 +162,10 @@ fn write_entry(user_number: UserNumber, timestamp: Timestamp, entry: ByteBuf) {
             timestamp,
             log_index: idx as u64,
         };
-        index.insert(key, vec![]).expect("failed"); // TODO: handle failure correctly
+
+        // the only way this expect can trigger is when the key size is wrong.
+        // On other failures (e.g. no more stable memory available) the underlying StableBTreeMap will panic directly.
+        index.insert(key, vec![]).expect("bug: key size mismatch");
     })
 }
 
