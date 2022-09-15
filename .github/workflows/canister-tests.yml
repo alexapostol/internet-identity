@@ -184,7 +184,7 @@ jobs:
   # (note: this runs _all_ cargo tests)
   canister-tests:
     runs-on: ${{ matrix.os }}
-    needs: docker-build
+    needs: [docker-build, docker-build-log-canister]
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ]
