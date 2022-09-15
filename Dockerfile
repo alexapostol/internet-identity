@@ -86,7 +86,7 @@ RUN touch src/canister_tests/src/lib.rs
 RUN ./scripts/build_log_canister
 RUN sha256sum /internet_identity_log.wasm
 
-FROM scratch AS scratch
+FROM scratch AS scratch_ii
 COPY --from=build /internet_identity.wasm /
 
 FROM scratch AS scratch_log_canister

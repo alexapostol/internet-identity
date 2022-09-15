@@ -83,7 +83,7 @@ jobs:
           cache-from: type=gha,scope=cached-stage
           # Exports the artefacts from the final stage
           outputs: ./out
-          target: scratch
+          target: scratch_ii
 
       - run: sha256sum out/internet_identity.wasm
       - run: mv out/internet_identity.wasm ${{ matrix.name }}
