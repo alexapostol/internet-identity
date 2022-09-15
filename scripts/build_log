@@ -11,7 +11,7 @@ cd "$SCRIPTS_DIR/.."
 #########
 
 function title() {
-    echo "Build Internet Identity"
+    echo "Build Internet Identity Log Canister"
 }
 
 function usage() {
@@ -21,14 +21,14 @@ Usage:
   $0 [--only-dependencies]
 
 Options:
-  --only-dependencies   only build rust dependencies (no js build, no wasm optimization)
+  --only-dependencies   only build rust dependencies (no wasm optimization)
 EOF
 }
 
 function help() {
     cat << EOF
 
-Builds the Internet Identity canister.
+Builds the Internet Identity Log canister.
 
 NOTE: This requires a working rust toolchain as well as ic-cdk-optimizer.
 EOF
@@ -69,14 +69,7 @@ then
     exit 1
 fi
 
-if [ "$ONLY_DEPS" != "1" ]
-then
-    # Compile frontend assets to dist
-    echo Compiling frontend assets
-    npm run build
-fi
-
-II_DIR="$PWD/src/internet_identity"
+II_LOG_DIR="$PWD/src/internet_identity_log"
 TARGET="wasm32-unknown-unknown"
 
 # standardize source references
@@ -84,35 +77,19 @@ CARGO_HOME="${CARGO_HOME:-"$HOME/.cargo"}"
 RUSTFLAGS="--remap-path-prefix $CARGO_HOME=/cargo"
 
 cargo_build_args=(
-    --manifest-path "$II_DIR/Cargo.toml"
+    --manifest-path "$II_LOG_DIR/Cargo.toml"
     --target "$TARGET"
     --release
     -j1
     )
 
-# This enables the "dummy_captcha" feature which makes sure the captcha string
-# is always "a".
-# WARNING: this MUST be opt-in, because we DO NOT want this in production,
-# EVAR.
-if [ "${II_DUMMY_CAPTCHA:-}" == "1" ]
-then
-    echo "USING DUMMY CAPTCHA"
-    cargo_build_args+=( --features dummy_captcha )
-fi
-
 echo Running cargo build "${cargo_build_args[@]}"
 echo RUSTFLAGS: "$RUSTFLAGS"
-
 RUSTFLAGS="$RUSTFLAGS" cargo build "${cargo_build_args[@]}"
 
 if [ "$ONLY_DEPS" != "1" ]
 then
-    CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$II_DIR/../../target/}"
-
-    ic-cdk-optimizer \
-        "$CARGO_TARGET_DIR/$TARGET/release/internet_identity.wasm" \
-        -o "./internet_identity.wasm"
-
+    CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$II_LOG_DIR/../../target/}"
     ic-cdk-optimizer \
             "$CARGO_TARGET_DIR/$TARGET/release/internet_identity_log.wasm" \
             -o "./internet_identity_log.wasm"
