@@ -9,10 +9,10 @@ use internet_identity_interface::{
 use serde_bytes::ByteBuf;
 
 const USER_NUMBER_1: UserNumber = 100001;
-//const USER_NUMBER_2: UserNumber = 100002;
+const USER_NUMBER_2: UserNumber = 100002;
 
 const TIMESTAMP_1: UserNumber = 999991;
-//const TIMESTAMP_2: UserNumber = 999992;
+const TIMESTAMP_2: UserNumber = 999992;
 
 #[test]
 fn should_install() -> Result<(), CallError> {
@@ -104,5 +104,24 @@ fn log_entry_1() -> LogEntry {
                 protection: DeviceProtection::Unprotected,
             },
         },
+        sequence_number: 0,
+    }
+}
+
+fn log_entry_2() -> LogEntry {
+    LogEntry {
+        timestamp: TIMESTAMP_2,
+        user_number: USER_NUMBER_2,
+        caller: principal_1().0,
+        operation: OperationType::RegisterAnchor {
+            initial_device: DeviceDataWithoutAlias {
+                pubkey: ByteBuf::from(PUBKEY_1),
+                credential_id: None,
+                purpose: Purpose::Authentication,
+                key_type: KeyType::Unknown,
+                protection: DeviceProtection::Unprotected,
+            },
+        },
+        sequence_number: 1,
     }
 }
