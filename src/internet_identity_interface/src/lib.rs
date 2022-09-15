@@ -199,7 +199,7 @@ pub struct LogEntry {
     pub user_number: UserNumber,
     pub operation: OperationType,
     pub timestamp: Timestamp,
-    pub caller: PublicKey,
+    pub caller: Principal,
 }
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
