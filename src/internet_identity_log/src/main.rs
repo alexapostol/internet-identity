@@ -1,5 +1,5 @@
 use candid::{CandidType, Deserialize, Principal};
-use ic_cdk::{caller, print, trap};
+use ic_cdk::{caller, trap};
 use ic_cdk_macros::{init, query, update};
 use internet_identity_interface::*;
 use serde_bytes::ByteBuf;
@@ -27,6 +27,9 @@ const LOG_INDEX_MEMORY_ID: MemoryId = MemoryId::new(0);
 const LOG_DATA_MEMORY_ID: MemoryId = MemoryId::new(1);
 const USER_INDEX_MEMORY_ID: MemoryId = MemoryId::new(2);
 
+/// Length of the user index key. Changing this value requires a stable memory migration.
+const USER_INDEX_KEY_LENGTH: usize = 24;
+
 thread_local! {
     /// Static configuration of the archive that init() sets once.
     static CONFIG: RefCell<ConfigCell> = RefCell::new(ConfigCell::init(
@@ -44,7 +47,7 @@ thread_local! {
 
     /// Index to efficiently filter entries by user number.
     static USER_INDEX: RefCell<UserIndex> = with_memory_manager(|memory_manager| {
-        RefCell::new(StableBTreeMap::new(memory_manager.get(USER_INDEX_MEMORY_ID), 5, 5))
+        RefCell::new(StableBTreeMap::new(memory_manager.get(USER_INDEX_MEMORY_ID), USER_INDEX_KEY_LENGTH as u32, 0))
     });
 }
 
@@ -114,14 +117,16 @@ struct UserIndexKey {
 
 impl Storable for UserIndexKey {
     fn to_bytes(&self) -> Cow<[u8]> {
-        let mut buf = Vec::with_capacity(10);
+        let mut buf = Vec::with_capacity(USER_INDEX_KEY_LENGTH);
         buf.extend(&self.user_number.to_le_bytes());
         buf.extend(&self.timestamp.to_le_bytes());
         buf.extend(&self.log_index.to_le_bytes());
+        assert_eq!(buf.len(), USER_INDEX_KEY_LENGTH);
         Cow::Owned(buf)
     }
 
     fn from_bytes(bytes: Vec<u8>) -> Self {
+        assert_eq!(bytes.len(), USER_INDEX_KEY_LENGTH);
         UserIndexKey {
             user_number: u64::from_le_bytes(
                 TryFrom::try_from(&bytes[0..8]).expect("failed to read user_number"),
@@ -249,9 +254,6 @@ fn init(maybe_arg: Option<LogInit>) {
                 })
                 .expect("failed to set log config");
         });
-        with_config(|config| {
-            print(&format!("config is now {:?}", config));
-        })
     }
 }
 

@@ -76,6 +76,10 @@ fn should_return_previously_written_entry() -> Result<(), CallError> {
     )?;
     let logs = log_api::get_logs(&env, canister_id, principal_1(), None, None)?;
     assert_eq!(logs.entries.len(), 1);
+    assert_eq!(
+        logs.entries.get(0).unwrap().as_ref().unwrap(),
+        &log_entry_1()
+    );
     Ok(())
 }
 

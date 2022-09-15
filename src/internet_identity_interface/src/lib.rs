@@ -176,7 +176,7 @@ pub struct InternetIdentityInit {
 
 // Logging specific types
 
-#[derive(Clone, Debug, CandidType, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Debug, CandidType, Deserialize)]
 pub enum OperationType {
     #[serde(rename = "register_anchor")]
     RegisterAnchor {
@@ -193,7 +193,7 @@ pub enum OperationType {
     RemoveDevice { removed_device: PublicKey },
 }
 
-#[derive(Clone, Debug, CandidType, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Debug, CandidType, Deserialize)]
 pub struct LogEntry {
     // store user_number in LogEntry, such that anchor operations can be attributed to a user without consulting the index.
     pub user_number: UserNumber,
@@ -202,7 +202,7 @@ pub struct LogEntry {
     pub caller: Principal,
 }
 
-#[derive(Clone, Debug, CandidType, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Debug, CandidType, Deserialize)]
 pub struct DeviceDataWithoutAlias {
     pub pubkey: DeviceKey,
     pub credential_id: Option<CredentialId>,
@@ -213,7 +213,7 @@ pub struct DeviceDataWithoutAlias {
 
 // If present, the attribute has been changed to the value given.
 // Does not include the pubkey because it cannot be changed.
-#[derive(Clone, Debug, CandidType, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Debug, CandidType, Deserialize)]
 pub struct DeviceDataUpdate {
     pub alias: Option<Hidden>,
     pub credential_id: Option<CredentialId>,
@@ -223,7 +223,7 @@ pub struct DeviceDataUpdate {
 }
 
 // Placeholder for information that has been hidden for privacy reasons.
-#[derive(Clone, Debug, CandidType, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Debug, CandidType, Deserialize)]
 pub enum Hidden {
     HiddenForPrivacyReasons,
 }
