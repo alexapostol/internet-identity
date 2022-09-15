@@ -68,12 +68,25 @@ ARG II_DUMMY_AUTH=
 
 RUN touch src/internet_identity/src/lib.rs
 RUN touch src/internet_identity_interface/src/lib.rs
-RUN touch src/internet_identity_log/src/lib.rs
 RUN touch src/canister_tests/src/lib.rs
 RUN npm ci
 
 RUN ./scripts/build
 RUN sha256sum /internet_identity.wasm
 
+FROM deps as build_log_canister
+
+COPY . .
+
+RUN touch src/internet_identity_interface/src/lib.rs
+RUN touch src/internet_identity_log/src/lib.rs
+RUN touch src/canister_tests/src/lib.rs
+
+RUN ./scripts/build_log_canister
+RUN sha256sum /internet_identity_log.wasm
+
 FROM scratch AS scratch
 COPY --from=build /internet_identity.wasm /
+
+FROM scratch AS scratch_log_canister
+COPY --from=build_log_canister /internet_identity_log.wasm /
