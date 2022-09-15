@@ -255,7 +255,7 @@ pub enum Cursor {
 }
 
 /// Init arguments of the II log canister.
-#[derive(CandidType, Deserialize)]
+#[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct LogInit {
     pub ii_canister: Principal,
 }

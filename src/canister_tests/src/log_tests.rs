@@ -79,9 +79,11 @@ fn should_return_previously_written_entry() -> Result<(), CallError> {
     Ok(())
 }
 
-fn encoded_log_config(ii_canister: Principal) -> Vec<u8> {
-    let config = LogInit { ii_canister };
-    candid::encode_one(config).expect("error encoding II installation arg as candid")
+fn encoded_log_config(authorized_principal: Principal) -> Vec<u8> {
+    let config = LogInit {
+        ii_canister: authorized_principal,
+    };
+    candid::encode_one(Some(config)).expect("error encoding II installation arg as candid")
 }
 
 fn log_entry_1() -> LogEntry {

@@ -1,5 +1,5 @@
 use candid::{CandidType, Deserialize, Principal};
-use ic_cdk::{caller, trap};
+use ic_cdk::{caller, print, trap};
 use ic_cdk_macros::{init, query, update};
 use internet_identity_interface::*;
 use serde_bytes::ByteBuf;
@@ -241,6 +241,7 @@ fn get_user_logs(user_number: u64, cursor: Option<Cursor>, limit: Option<u16>) -
 
 #[init]
 fn init(maybe_arg: Option<LogInit>) {
+    print(&format!("arg {:?}", maybe_arg));
     if let Some(arg) = maybe_arg {
         CONFIG.with(|cell| {
             cell.borrow_mut()
