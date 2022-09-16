@@ -63,7 +63,12 @@ export async function runInBrowser(
     try {
       await browser.deleteSession();
     } catch (e) {
-      console.error("error occurred during session cleanup: " + e.message);
+      if (e instanceof Error) {
+        console.error("error occurred during session cleanup: " + e.message);
+      } else {
+        console.error("error occurred during session cleanup: " + e);
+      }
+      
     }
   }
 }

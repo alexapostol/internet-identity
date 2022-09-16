@@ -36,5 +36,5 @@ declare global {
   }
 }
 
-global.crypto = crypto;
-global.TextEncoder = textEncoding.TextEncoder;
+(global as any).crypto = crypto;
+(global as any).TextEncoder = textEncoding.TextEncoder;

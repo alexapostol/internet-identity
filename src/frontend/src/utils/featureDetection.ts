@@ -12,6 +12,10 @@ export const checkRequiredFeatures = async (
       ? true
       : "UserVerifyingPlatformAuthenticator is not available";
   } catch (error) {
+    if (error instanceof Error) {
     return `An error occured when checking for compatibility: ${error.message}`;
+    } else {
+      return `An error occured when checking for compatibility: ${error}`;
+    }
   }
 };

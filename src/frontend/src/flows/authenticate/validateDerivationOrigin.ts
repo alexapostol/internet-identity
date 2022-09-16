@@ -65,10 +65,18 @@ export const validateDerivationOrigin = async (
       };
     }
   } catch (e) {
-    return {
-      result: "invalid",
-      message: `An error occurred while validation the derivationOrigin "${derivationOrigin}": ${e.message}`,
-    };
+    if (e instanceof Error) {
+      return {
+        result: "invalid",
+        message: `An error occurred while validation the derivationOrigin "${derivationOrigin}": ${e.message}`,
+      };
+    } else {
+      return {
+        result: "invalid",
+        message: `An error occurred while validation the derivationOrigin "${derivationOrigin}": ${e}`,
+      };
+    }
+    
   }
 
   // all checks passed --> valid
